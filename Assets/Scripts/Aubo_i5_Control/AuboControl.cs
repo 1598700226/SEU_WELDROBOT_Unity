@@ -1,0 +1,292 @@
+using System;
+using System.Linq;
+using System.Collections;
+using System.Collections.Generic;
+
+using RosMessageTypes.Geometry;
+using RosMessageTypes.Std;
+using RosMessageTypes.VirtualRobotControl;
+
+using Unity.Robotics.ROSTCPConnector;
+using Unity.Robotics.ROSTCPConnector.ROSGeometry;
+using UnityEditor;
+using UnityEngine;
+
+// 01.Robot parameter
+// 02.Robot initialize
+// 03.Parameter of robot in unity acquring
+// 04.Basic control of robot in unity
+
+public class AuboControl : MonoBehaviour
+{
+
+    public enum RobotType
+    {
+        aubo_i5,
+        aubo_i10,
+    }
+
+    public RobotType robotType;
+
+    private static readonly Dictionary<RobotType, string[]> AuboLinkNames = new Dictionary<RobotType, string[]>
+    {
+        { RobotType.aubo_i5, new string[6] { "world/base_link/shoulder_Link", "/upperArm_Link", "/foreArm_Link", "/wrist1_Link", "/wrist2_Link", "/wrist3_Link" }},
+        { RobotType.aubo_i10, new string[6] { "base_link/shoulder_Link", "/upperArm_Link", "/foreArm_Link", "/wrist1_Link", "/wrist2_Link", "/wrist3_Link" }}
+    };
+
+    private static readonly Dictionary<RobotType, double[]> AuboHomeJoints = new Dictionary<RobotType, double[]>
+    {
+        { RobotType.aubo_i5, new double[6] { 0, 0, -1.54, 0, -1.52, 0 }},
+        { RobotType.aubo_i10, new double[6] { 0, 0.115909, 1.829596, 0.142811, 1.621238, 0 }}
+    };
+
+    private static readonly Dictionary<RobotType, double[]> AuboStartJoints = new Dictionary<RobotType, double[]>
+    {
+        { RobotType.aubo_i5, new double[6] { 0, 0, -1.54, 0, -1.52, 0 }},
+        { RobotType.aubo_i10, new double[6] { 0, 0.115909, 1.829596, 0.142811, 1.621238, 0 }}
+    };
+
+
+    // Robot joint
+    public static readonly int k_NumRobotJoints = 6;
+
+    public double[] m_RealJointsState;
+    public PoseMsg m_RealPose;
+    public PoseMsg m_Transform;
+    public double[] m_VirtualJointsState;
+
+    // Interval of simulate robot executing
+    public float k_JointAssignmentWait = 0.1f;
+    public float k_PoseAssignmentWait = 0.5f;
+    public float k_PublishMsgFrequency = 0.5f;  //ROS消息发送频率
+
+    // 是否进入遥操作模式      ---------*******记得做互斥的修改********-------------
+    public bool is_TeleOperation = false;
+
+
+    // Velocity of real robot
+    public double m_JointVelocity = 0.1;
+
+    // The position of welding( vertical or parallel)
+    // Vertical
+    public readonly Quaternion m_VerticalOrientation = new Quaternion(-0.71084f, 0.06635f, 0.69868f, -0.04650f);//Quaternion.Euler(0, 0, -180); //0, 0, -180
+    // Parallel
+    public readonly Quaternion m_ParallelOrientation = Quaternion.Euler(90, 90, 0);
+    // Welding offset
+    public Vector3 m_ParalleleOffset = Vector3.up * 0.1f;
+
+    //Ros topic or service for inilialize and control
+    const string m_JointTopicName = "/aubo_joints_state";
+    const string m_SycServiceName = "/aubo_unity_syc";
+    const string m_JointPubName = "/aubo_target_joints";
+    const string m_ArmCancelName = "aubo_driver/cancel_trajectory";
+
+    // Gameobject of robot
+    GameObject m_Aubo;
+
+    // Ros Connector
+    ROSConnection m_Ros;
+
+    // Ariticulation Bodies
+    ArticulationBody[] m_JointArticulationBodies;
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        // Find the robot
+        m_Aubo = GameObject.Find(robotType.ToString());
+
+        m_RealPose = new PoseMsg();
+        m_Transform = new PoseMsg();
+        m_RealJointsState = new double[k_NumRobotJoints];
+        m_VirtualJointsState = new double[k_NumRobotJoints];
+
+
+        // Initialize Robot Joints
+        m_JointArticulationBodies = new ArticulationBody[k_NumRobotJoints];
+        var linkName = string.Empty;
+        for (var i = 0; i < k_NumRobotJoints; i++)
+        {
+            linkName += AuboLinkNames[robotType][i];
+            m_JointArticulationBodies[i] = m_Aubo.transform.Find(linkName).GetComponent<ArticulationBody>();
+
+        }
+
+        // Get Ros connetion static instace
+        m_Ros = ROSConnection.GetOrCreateInstance();
+        // 同步的问题： 发送服务:untiy->ros   订阅话题:ros->unity
+        // Topic of robot joint states
+        m_Ros.Subscribe<AuboJointsStateMsg>(m_JointTopicName, SubJointState);
+
+        m_Ros.RegisterPublisher<AuboJointsMsg>(m_JointPubName);
+
+        m_Ros.RegisterRosService<AuboSycServiceRequest, AuboSycServiceResponse>(m_SycServiceName);
+
+        m_Ros.RegisterPublisher<UInt8Msg>(m_ArmCancelName);
+
+        // init
+        AuboToStart();
+
+        StartCoroutine(SendMessageRepeatedly(k_PublishMsgFrequency)); // 开始协程，间隔发送消息
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        // update the virtual joints states in time
+        m_VirtualJointsState = GetCurrenJoints().joints;
+
+    }
+
+    // Initailize and Home 
+
+    public void AuboToStart()
+    {
+        SetJointState(AuboStartJoints[robotType]);
+    }
+
+    public void AuboToHome()
+    {
+        SetJointState(AuboHomeJoints[robotType]);
+    }
+
+    // Simulate robot pose get(Fk  joint state and  pose)
+    public AuboJointsMsg GetCurrenJoints()
+    {
+        var joints = new AuboJointsMsg();
+
+        for (var i = 0; i < k_NumRobotJoints; i++)
+        {
+            joints.joints[i] = m_JointArticulationBodies[i].jointPosition[0];
+
+        }
+
+        return joints;
+    }
+
+    // Basic control of robot
+    public void SetJointState(double[] target_joints)
+    {
+        // double -> float
+        var result = target_joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
+        for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
+        {
+            var joint1XDrive = m_JointArticulationBodies[joint].xDrive;
+            joint1XDrive.target = result[joint];
+            m_JointArticulationBodies[joint].xDrive = joint1XDrive;
+
+            //m_JointArticulationBodies[joint].xDrive.target = result[joint];
+
+        }
+
+    }
+
+    IEnumerator SendMessageRepeatedly(float interval)
+    {
+        while (true) // 遥操作时持续发送消息
+        {
+            if (is_TeleOperation)
+            {
+                UnityEngine.Debug.Log("开始协程");
+                AuboJointsMsg pub_joints = new AuboJointsMsg(m_VirtualJointsState);
+                m_Ros.Publish(m_JointPubName, pub_joints);
+            }
+
+
+            yield return new WaitForSeconds(interval); // 等待指定的时间间隔
+        }
+    }
+
+    //暂停机械臂动作，暂停后不可恢复原系列动作
+    public void CancelArmAction()
+    {
+        UInt8Msg pub_data = new UInt8Msg();
+        pub_data.data = 1;
+        m_Ros.Publish(m_ArmCancelName, pub_data);
+    }
+
+    /*
+    public void PubJoints(double[] target_joints)
+    {
+        AuboJointsMsg pub_joints = new AuboJointsMsg(target_joints);
+        m_Ros.Publish(m_JointPubName, pub_joints);
+        SetJointState(target_joints);
+    }
+    */
+
+    // Subscribe the joints state and print them
+    void SubJointState(AuboJointsStateMsg jointsstate)
+    {
+        m_RealJointsState = jointsstate.joints;
+        Debug.Log($"{m_RealJointsState[0]} {m_RealJointsState[1]} {m_RealJointsState[2]}");
+        m_RealPose = jointsstate.pose;
+        m_Transform = jointsstate.transform;
+        // Show the data to screen
+        // -----------need to change-----------
+        // ------------------------------------
+        double joint1 = m_RealJointsState[0];
+        var pose_x = m_RealPose.position.x;
+        //Debug.Log(joint1.ToString());
+        //Debug.Log(pose_x);
+        // -----------------------------------
+        // -----------------------------------
+    }
+
+    // Service request for robot synch
+    public void SycRequest(double[] joints, PoseMsg pose, bool isJoint)
+    {
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        // ros msg : float64  ------>   unity msg : double
+        // use float664
+        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        var request = new AuboSycServiceRequest();
+        var target_joints = new double[6];
+        var target_pose = new PoseMsg();
+
+        target_joints = joints;
+        target_pose = pose;
+
+        request.current_joints = GetCurrenJoints();
+
+        request.target_joints = target_joints;
+        request.target_pose = target_pose;
+
+        if (isJoint == true)
+        {
+            // joints control
+            request.is_joints = true;
+            request.is_pose = false;
+        }
+        else
+        {
+            // pose control
+            request.is_joints = false;
+            request.is_pose = true;
+        }
+        Debug.Log($"request: {joints[0]}, {joints[1]}, {joints[2]}," +
+    $"{joints[3]}, {joints[4]}, {joints[5]}");
+        m_Ros.SendServiceMessage<AuboSycServiceResponse>(m_SycServiceName, request, SycResponse);
+
+    }
+
+    public void SycResponse(AuboSycServiceResponse response)
+    {
+        if (response.aim_get == true)
+        {
+            Debug.Log($"response: {response.aim_joints[0]}, {response.aim_joints[1]}, {response.aim_joints[2]}," +
+                $"{response.aim_joints[3]}, {response.aim_joints[4]}, {response.aim_joints[5]}");
+            SetJointState(response.aim_joints);
+        }
+        else
+        {
+            Debug.LogError("Synch Failed!");
+        }
+
+
+    }
+
+
+
+
+
+}
