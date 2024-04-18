@@ -58,7 +58,7 @@ public class AuboControl : MonoBehaviour
     // Interval of simulate robot executing
     public float k_JointAssignmentWait = 0.1f;
     public float k_PoseAssignmentWait = 0.5f;
-    public float k_PublishMsgFrequency = 0.5f;  //ROS消息发送频率
+    public float k_PublishMsgFrequency = 0.01f;  //ROS消息发送频率
 
     // 是否进入遥操作模式      ---------*******记得做互斥的修改********-------------
     public bool is_TeleOperation = false;
@@ -218,7 +218,6 @@ public class AuboControl : MonoBehaviour
     void SubJointState(AuboJointsStateMsg jointsstate)
     {
         m_RealJointsState = jointsstate.joints;
-        Debug.Log($"{m_RealJointsState[0]} {m_RealJointsState[1]} {m_RealJointsState[2]}");
         m_RealPose = jointsstate.pose;
         m_Transform = jointsstate.transform;
         // Show the data to screen

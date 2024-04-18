@@ -175,6 +175,9 @@ public class Kinematics : MonoBehaviour
             //获取当时真实的机械臂关节角度
             Array.Copy(i_aubocontrol.m_VirtualJointsState, slaver_current_joints, 6);
             aubo_forward(slaver_current_matrix, slaver_current_joints);
+            slaver_current_position[0] = slaver_current_matrix[0, 3];
+            slaver_current_position[1] = slaver_current_matrix[1, 3];
+            slaver_current_position[2] = slaver_current_matrix[2, 3];
             slaver_current_oritation = DoubleMatrixToRotation(slaver_current_matrix);
 
 
