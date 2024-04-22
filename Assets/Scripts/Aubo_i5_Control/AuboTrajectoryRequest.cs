@@ -168,6 +168,16 @@ public class AuboTrajectoryRequest : MonoBehaviour
         }
 
         //todo 检查当前真实机械臂关节角和当前虚拟的关节角是否一致，不一致需要同步
+        double sum = 0;
+        for (int i = 0; i < 6; i++)
+        {
+            sum += Math.Abs(request.current_joints.joints[i] - i_controller.m_RealJointsState[i]);
+        }
+        if (sum >= 0.02)   //1度左右
+        {
+            Debug.Log("请同步真实与虚拟机械臂！");
+            return;
+        }
 
         var pose_orientation = i_controller.m_VerticalOrientation.To<FLU>();
         
