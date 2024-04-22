@@ -364,6 +364,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     {
         if(!IsBuliding)
         {
+            Debug.Log("¡¾CompressedColorImageCall¡¿»ñµÃÑ¹ËõÍ¼Æ¬");
             Colors = JPEGToRGB(CompressedColorImage.data);
 
             if (showType == 1)

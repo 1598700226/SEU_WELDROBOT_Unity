@@ -595,12 +595,12 @@ public class DataCommon : MonoBehaviour
         double[] virtualJoint = auboControl.m_VirtualJointsState;
 
         if (realJoints != null && realJoints.Length == 6) {
-            laber_real_joint_1_angle.text = String.Format("{0:F4}", realJoints[0]);
-            laber_real_joint_2_angle.text = String.Format("{0:F4}", realJoints[1]);
-            laber_real_joint_3_angle.text = String.Format("{0:F4}", realJoints[2]);
-            laber_real_joint_4_angle.text = String.Format("{0:F4}", realJoints[3]);
-            laber_real_joint_5_angle.text = String.Format("{0:F4}", realJoints[4]);
-            laber_real_joint_6_angle.text = String.Format("{0:F4}", realJoints[5]);
+            laber_real_joint_1_angle.text = String.Format("{0:F3}°", realJoints[0] * Mathf.Rad2Deg);
+            laber_real_joint_2_angle.text = String.Format("{0:F3}°", realJoints[1] * Mathf.Rad2Deg);
+            laber_real_joint_3_angle.text = String.Format("{0:F3}°", realJoints[2] * Mathf.Rad2Deg);
+            laber_real_joint_4_angle.text = String.Format("{0:F3}°", realJoints[3] * Mathf.Rad2Deg);
+            laber_real_joint_5_angle.text = String.Format("{0:F3}°", realJoints[4] * Mathf.Rad2Deg);
+            laber_real_joint_6_angle.text = String.Format("{0:F3}°", realJoints[5] * Mathf.Rad2Deg);
         }
 
         if (realPose != null) {
@@ -613,13 +613,13 @@ public class DataCommon : MonoBehaviour
             laber_real_pose_rw.text = String.Format("{0:F6}", realPose.orientation.w);
         }
 
-        if (virtualJoint != null && realJoints.Length == 6) {
-            laber_virtual_joint_1_angle.text = String.Format("{0:F4}", virtualJoint[0]);
-            laber_virtual_joint_2_angle.text = String.Format("{0:F4}", virtualJoint[1]);
-            laber_virtual_joint_3_angle.text = String.Format("{0:F4}", virtualJoint[2]);
-            laber_virtual_joint_4_angle.text = String.Format("{0:F4}", virtualJoint[3]);
-            laber_virtual_joint_5_angle.text = String.Format("{0:F4}", virtualJoint[4]);
-            laber_virtual_joint_6_angle.text = String.Format("{0:F4}", virtualJoint[5]);
+        if (virtualJoint != null && virtualJoint.Length == 6) {
+            laber_virtual_joint_1_angle.text = String.Format("{0:F3}°", virtualJoint[0] * Mathf.Rad2Deg);
+            laber_virtual_joint_2_angle.text = String.Format("{0:F3}°", virtualJoint[1] * Mathf.Rad2Deg);
+            laber_virtual_joint_3_angle.text = String.Format("{0:F3}°", virtualJoint[2] * Mathf.Rad2Deg);
+            laber_virtual_joint_4_angle.text = String.Format("{0:F3}°", virtualJoint[3] * Mathf.Rad2Deg);
+            laber_virtual_joint_5_angle.text = String.Format("{0:F3}°", virtualJoint[4] * Mathf.Rad2Deg);
+            laber_virtual_joint_6_angle.text = String.Format("{0:F3}°", virtualJoint[5] * Mathf.Rad2Deg);
         }
 
         if (!string.IsNullOrEmpty(input_aubo_speed.text))
@@ -656,72 +656,76 @@ public class DataCommon : MonoBehaviour
         }
 
         if (toggle_aubo_send_isJoint.isOn) {
-            double joint_1 = double.Parse(laber_virtual_joint_1_angle.text);
+
+            double[] virtual_joints = auboControl.m_VirtualJointsState;
+            double joint_1 = virtual_joints[0];
             if(!string.IsNullOrEmpty(input_aubo_joint_1_angle.text))
-                joint_1 = double.Parse(input_aubo_joint_1_angle.text);
+                joint_1 = double.Parse(input_aubo_joint_1_angle.text) * Mathf.Deg2Rad;
 
-            double joint_2 = double.Parse(laber_virtual_joint_2_angle.text);
+            double joint_2 = virtual_joints[1];
             if (!string.IsNullOrEmpty(input_aubo_joint_2_angle.text))
-                joint_2 = double.Parse(input_aubo_joint_2_angle.text);
+                joint_2 = double.Parse(input_aubo_joint_2_angle.text) * Mathf.Deg2Rad;
 
-            double joint_3 = double.Parse(laber_virtual_joint_3_angle.text);
+            double joint_3 = virtual_joints[2];
             if (!string.IsNullOrEmpty(input_aubo_joint_3_angle.text))
-                joint_3 = double.Parse(input_aubo_joint_3_angle.text);
+                joint_3 = double.Parse(input_aubo_joint_3_angle.text) * Mathf.Deg2Rad;
 
-            double joint_4 = double.Parse(laber_virtual_joint_4_angle.text);
+            double joint_4 = virtual_joints[3];
             if (!string.IsNullOrEmpty(input_aubo_joint_4_angle.text))
-                joint_4 = double.Parse(input_aubo_joint_4_angle.text);
+                joint_4 = double.Parse(input_aubo_joint_4_angle.text) * Mathf.Deg2Rad;
 
-            double joint_5 = double.Parse(laber_virtual_joint_5_angle.text);
+            double joint_5 = virtual_joints[4];
             if (!string.IsNullOrEmpty(input_aubo_joint_5_angle.text))
-                joint_5 = double.Parse(input_aubo_joint_5_angle.text);
+                joint_5 = double.Parse(input_aubo_joint_5_angle.text) * Mathf.Deg2Rad;
 
-            double joint_6 = double.Parse(laber_virtual_joint_6_angle.text);
+            double joint_6 = virtual_joints[5];
             if (!string.IsNullOrEmpty(input_aubo_joint_6_angle.text))
-                joint_6 = double.Parse(input_aubo_joint_6_angle.text);
+                joint_6 = double.Parse(input_aubo_joint_6_angle.text) * Mathf.Deg2Rad;
 
             double[] joints = new double[] { joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 };
             auboControl.SycRequest(joints, new PoseMsg(), true);
-        } 
+        }
         else 
         {
-            if (string.IsNullOrEmpty(input_aubo_endPoint_x.text) ||
-                string.IsNullOrEmpty(input_aubo_endPoint_y.text) ||
-                string.IsNullOrEmpty(input_aubo_endPoint_z.text) ||
-                string.IsNullOrEmpty(input_aubo_endPoint_rx.text) ||
-                string.IsNullOrEmpty(input_aubo_endPoint_ry.text) ||
-                string.IsNullOrEmpty(input_aubo_endPoint_rz.text) ||
-                string.IsNullOrEmpty(input_aubo_endPoint_rw.text))
-            {
-                input_aubo_endPoint_x.text = string.Empty;
-                input_aubo_endPoint_y.text = string.Empty;
-                input_aubo_endPoint_z.text = string.Empty;
-                input_aubo_endPoint_rx.text = string.Empty;
-                input_aubo_endPoint_ry.text = string.Empty;
-                input_aubo_endPoint_rz.text = string.Empty;
-                input_aubo_endPoint_rw.text = string.Empty;
+            /*            if (string.IsNullOrEmpty(input_aubo_endPoint_x.text) ||
+                            string.IsNullOrEmpty(input_aubo_endPoint_y.text) ||
+                            string.IsNullOrEmpty(input_aubo_endPoint_z.text) ||
+                            string.IsNullOrEmpty(input_aubo_endPoint_rx.text) ||
+                            string.IsNullOrEmpty(input_aubo_endPoint_ry.text) ||
+                            string.IsNullOrEmpty(input_aubo_endPoint_rz.text) ||
+                            string.IsNullOrEmpty(input_aubo_endPoint_rw.text))
+                        {
+                            input_aubo_endPoint_x.text = string.Empty;
+                            input_aubo_endPoint_y.text = string.Empty;
+                            input_aubo_endPoint_z.text = string.Empty;
+                            input_aubo_endPoint_rx.text = string.Empty;
+                            input_aubo_endPoint_ry.text = string.Empty;
+                            input_aubo_endPoint_rz.text = string.Empty;
+                            input_aubo_endPoint_rw.text = string.Empty;
 
-                double joint_1 = double.Parse(laber_virtual_joint_1_angle.text);
-                double joint_2 = double.Parse(laber_virtual_joint_2_angle.text);
-                double joint_3 = double.Parse(laber_virtual_joint_3_angle.text);
-                double joint_4 = double.Parse(laber_virtual_joint_4_angle.text);
-                double joint_5 = double.Parse(laber_virtual_joint_5_angle.text);
-                double joint_6 = double.Parse(laber_virtual_joint_6_angle.text);
-                double[] joints = new double[] { joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 };
-                auboControl.SycRequest(joints, new PoseMsg(), true);
-                return;
-            }
-            else {
-                double x = double.Parse(input_aubo_endPoint_x.text);
-                double y = double.Parse(input_aubo_endPoint_y.text);
-                double z = double.Parse(input_aubo_endPoint_z.text);
-                double rx = double.Parse(input_aubo_endPoint_rx.text);
-                double ry = double.Parse(input_aubo_endPoint_ry.text);
-                double rz = double.Parse(input_aubo_endPoint_rz.text);
-                double rw = double.Parse(input_aubo_endPoint_rw.text);
-                PoseMsg poseMsg = new PoseMsg(new PointMsg(x, y, z), new QuaternionMsg(rx, ry, rz, rw));
-                auboControl.SycRequest(new double[6], poseMsg, false);
-            }
+                            double joint_1 = double.Parse(laber_virtual_joint_1_angle.text);
+                            double joint_2 = double.Parse(laber_virtual_joint_2_angle.text);
+                            double joint_3 = double.Parse(laber_virtual_joint_3_angle.text);
+                            double joint_4 = double.Parse(laber_virtual_joint_4_angle.text);
+                            double joint_5 = double.Parse(laber_virtual_joint_5_angle.text);
+                            double joint_6 = double.Parse(laber_virtual_joint_6_angle.text);
+                            double[] joints = new double[] { joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 };
+                            auboControl.SycRequest(joints, new PoseMsg(), true);
+                            return;
+                        }
+                        else
+                        {
+                            double x = double.Parse(input_aubo_endPoint_x.text);
+                            double y = double.Parse(input_aubo_endPoint_y.text);
+                            double z = double.Parse(input_aubo_endPoint_z.text);
+                            double rx = double.Parse(input_aubo_endPoint_rx.text);
+                            double ry = double.Parse(input_aubo_endPoint_ry.text);
+                            double rz = double.Parse(input_aubo_endPoint_rz.text);
+                            double rw = double.Parse(input_aubo_endPoint_rw.text);
+                            PoseMsg poseMsg = new PoseMsg(new PointMsg(x, y, z), new QuaternionMsg(rx, ry, rz, rw));
+                            auboControl.SycRequest(new double[6], poseMsg, false);
+                        }*/
+            return;
         }
     }
 
@@ -730,7 +734,6 @@ public class DataCommon : MonoBehaviour
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         double[] realjoints = auboControl.m_RealJointsState;
         auboControl.SetJointState(realjoints);
-
     }
 
     /**********************************************高德地图相关事件******************************************/

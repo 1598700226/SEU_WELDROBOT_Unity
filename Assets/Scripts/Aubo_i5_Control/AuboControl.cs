@@ -58,7 +58,7 @@ public class AuboControl : MonoBehaviour
     // Interval of simulate robot executing
     public float k_JointAssignmentWait = 0.1f;
     public float k_PoseAssignmentWait = 0.5f;
-    public float k_PublishMsgFrequency = 0.01f;  //ROS消息发送频率
+    public float k_PublishMsgFrequency = 0.1f;  //ROS消息发送频率
 
     // 是否进入遥操作模式      ---------*******记得做互斥的修改********-------------
     public bool is_TeleOperation = false;
@@ -136,6 +136,7 @@ public class AuboControl : MonoBehaviour
         // update the virtual joints states in time
         m_VirtualJointsState = GetCurrenJoints().joints;
 
+
     }
 
     // Initailize and Home 
@@ -195,6 +196,7 @@ public class AuboControl : MonoBehaviour
 
             yield return new WaitForSeconds(interval); // 等待指定的时间间隔
         }
+
     }
 
     //暂停机械臂动作，暂停后不可恢复原系列动作
@@ -262,7 +264,7 @@ public class AuboControl : MonoBehaviour
             request.is_joints = false;
             request.is_pose = true;
         }
-        Debug.Log($"request: {joints[0]}, {joints[1]}, {joints[2]}," +
+        Debug.Log($"【SycRequest】joints: {joints[0]}, {joints[1]}, {joints[2]}," +
     $"{joints[3]}, {joints[4]}, {joints[5]}");
         m_Ros.SendServiceMessage<AuboSycServiceResponse>(m_SycServiceName, request, SycResponse);
 

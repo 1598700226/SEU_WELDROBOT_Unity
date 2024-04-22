@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class RawImageControlSize : MonoBehaviour, IPointerEnterHandler
+public class RawImageControlSize : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
     public RawImage rawImage;   // 用于显示图像的UI RawImage
     public float zoomSpeed = 50.0f; 
