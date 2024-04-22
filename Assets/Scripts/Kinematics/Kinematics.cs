@@ -30,7 +30,7 @@ public class Kinematics : MonoBehaviour
     private const double d6 = 0.094;
     */
 
-    
+
     // AUBO_I10_PARAMS
     private const double a2 = 0.647;
     private const double a3 = 0.6005;
@@ -38,13 +38,13 @@ public class Kinematics : MonoBehaviour
     private const double d2 = 0.2013;
     private const double d5 = 0.1025;
     private const double d6 = 0.094;
-    
+
 
     //关节角度限制
     //private double MaxQ = 175.0 / 180.0 * Math.PI;
     private double[,] AngleLimit = new double[6, 2]
     {
-        {-175.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
+        {-10.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
         {-175.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
         {-175.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
         {-175.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
@@ -71,6 +71,7 @@ public class Kinematics : MonoBehaviour
     const double move_linear_thresh_max = 0.03;  //单次移动最大范围 
     const double move_angular_thresh_min = 5.0 / 180 * Math.PI;  //单次移动最小角度范围 20
     const double move_angular_thresh_max = 80.0 / 180 * Math.PI;  //单次移动最大角度范围
+    const double arm_max_change = 1; //机械臂6个关节最大累计变化量 60度左右
 
     private bool is_linear_flag = false;
     private bool is_angular_flag = false;
@@ -79,6 +80,7 @@ public class Kinematics : MonoBehaviour
     private double[] slaver_initial_joints = new double[] { 0, 0.115909, 1.829596, 0.142811, 1.621238, 0 };
     [SerializeField]
     private double[] slaver_current_joints = new double[6];
+    //private double[] slaver_previous_joints = new double[6];
     [SerializeField]
     private double[] slaver_current_position = new double[3];
     private Matrix4x4 slaver_current_oritation = new Matrix4x4();
@@ -156,7 +158,7 @@ public class Kinematics : MonoBehaviour
         Transform_Ros_Touch.m21 = 1;
         Transform_Ros_Touch.m33 = 1;
 
-        
+
 
     }
 
@@ -190,6 +192,7 @@ public class Kinematics : MonoBehaviour
             Array.Copy(master_current_rpy, master_previous_rpy, master_current_rpy.Length);
             //master_previous_position = master_current_position;
             master_previous_oritation = master_current_oritation;
+            //Array.Copy(slaver_current_joints, slaver_previous_joints, slaver_current_joints.Length);
 
             Array.Copy(slaver_current_position, slaver_start_position, slaver_current_position.Length);
             //slaver_start_position = slaver_current_position;
@@ -283,7 +286,36 @@ public class Kinematics : MonoBehaviour
                 bool flag = GetInverseResult(slaver_target_pose, slaver_current_joints, out temp_inverse);
                 if (flag)
                 {
-                    Array.Copy(temp_inverse, slaver_current_joints, temp_inverse.Length);
+                    double joints_sum = 0;
+                    for (int i = 0; i < slaver_current_joints.Length; i++)
+                    {
+                        joints_sum += Math.Abs(temp_inverse[i] - slaver_current_joints[i]);  //使用current_joints即可，不必再增加previous_joints变量
+                    }
+
+                    if (joints_sum < arm_max_change)  //60度左右
+                    {
+                        Array.Copy(temp_inverse, slaver_current_joints, temp_inverse.Length);
+                        //Array.Copy(temp_inverse, slaver_previous_joints, temp_inverse.Length);
+                        aubo_forward(slaver_current_matrix, slaver_current_joints);
+                        slaver_current_position[0] = slaver_current_matrix[0, 3];
+                        slaver_current_position[1] = slaver_current_matrix[1, 3];
+                        slaver_current_position[2] = slaver_current_matrix[2, 3];
+                        slaver_current_oritation = DoubleMatrixToRotation(slaver_current_matrix);
+
+                        //i_aubocontrol.PubJoints(slaver_current_joints);
+
+                        //AuboJointsMsg pub_joints = new AuboJointsMsg(slaver_current_joints);
+                        //i_aubocontrol.m_Ros.Publish(i_aubocontrol.m_JointPubName, pub_joints);
+                        i_aubocontrol.SetJointState(slaver_current_joints);
+                    }
+                    else
+                    {
+                        UnityEngine.Debug.LogError("机械臂变化角度过大，请重新开始！");
+                        TeleoperationEngaged = false;
+                        return;
+                    }
+
+                    /*Array.Copy(temp_inverse, slaver_current_joints, temp_inverse.Length);
                     aubo_forward(slaver_current_matrix, slaver_current_joints);
                     slaver_current_position[0] = slaver_current_matrix[0, 3];
                     slaver_current_position[1] = slaver_current_matrix[1, 3];
@@ -294,7 +326,7 @@ public class Kinematics : MonoBehaviour
 
                     //AuboJointsMsg pub_joints = new AuboJointsMsg(slaver_current_joints);
                     //i_aubocontrol.m_Ros.Publish(i_aubocontrol.m_JointPubName, pub_joints);
-                    i_aubocontrol.SetJointState(slaver_current_joints);
+                    i_aubocontrol.SetJointState(slaver_current_joints);*/
                 }
                 else
                 {
