@@ -69,7 +69,7 @@ public class AuboControl : MonoBehaviour
 
     // The position of welding( vertical or parallel)
     // Vertical
-    public readonly Quaternion m_VerticalOrientation = new Quaternion(-0.71084f, 0.06635f, 0.69868f, -0.04650f);//Quaternion.Euler(0, 0, -180); //0, 0, -180
+    public readonly Quaternion m_VerticalOrientation = new Quaternion(0.70684f, -0.01705f, -0.70692f, -0.01861f);//Quaternion.Euler(0, 0, -180); //0, 0, -180
     // Parallel
     public readonly Quaternion m_ParallelOrientation = Quaternion.Euler(90, 90, 0);
     // Welding offset
@@ -93,6 +93,10 @@ public class AuboControl : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        Quaternion<FLU> ros = new Quaternion<FLU>(-0.706923f, -0.706840f, -0.017048f, 0.018613f);
+        Quaternion<RUF> unity = ros.To<RUF>();
+        Debug.Log($"ROS quaternion: {ros} Unity quaternion:{unity}");
+
         // Find the robot
         m_Aubo = GameObject.Find(robotType.ToString());
 

@@ -221,6 +221,11 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
 
         // 创建一个Texture2D来加载像素数据
+        // 销毁旧的Texture2D以防止内存泄漏
+        if (pgmTexture2D != null)
+        {
+            Destroy(pgmTexture2D);
+        }
         pgmTexture2D = new Texture2D(img_width, img_height);
         // 将像素数据填充到Texture2D
         for (int y = 0; y < img_height; y++)
@@ -228,7 +233,7 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             for (int x = 0; x < img_width; x++)
             {
                 float normalizedValue = (float)data[y, x] / (float)maxPixelValue;
-                Color color = new Color(normalizedValue, normalizedValue, normalizedValue);
+                Color color = new Color(1 - normalizedValue, 1 - normalizedValue, 1 - normalizedValue);
                 pgmTexture2D.SetPixel(x, img_height - 1 - y, color);  // 需要翻转y轴以匹配Unity坐标系
             }
         }

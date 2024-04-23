@@ -380,6 +380,9 @@ public class DataCommon : MonoBehaviour
         if (auboMaunalOperatePlan.isMaunalOperateMode)
         {
             btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "拖拽示教模式：开";
+            // add user prompt dialog
+            ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
+            modelDialogControl.ShowDialog("注意！重要！", "开启拖拽示教模式后不能使用其他模式！");
         }
         else
         {
@@ -635,6 +638,10 @@ public class DataCommon : MonoBehaviour
         if (auboControl.is_TeleOperation)
         {
             btn_aubo_teleOperate.GetComponentInChildren<TMP_Text>().text = "遥操作模式：开";
+
+            // add user prompt dialog
+            ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
+            modelDialogControl.ShowDialog("注意！重要！", "开启遥操作模式后不能使用其他模式！");
         }
         else 
         {
@@ -756,7 +763,8 @@ public class DataCommon : MonoBehaviour
 
     void CarStop()
     { 
-    
+        UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
+        unitySubscription_Map.NaviCancel();
     }
 
     void EveryThingStop()
