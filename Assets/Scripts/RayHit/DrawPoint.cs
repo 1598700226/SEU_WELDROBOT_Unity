@@ -24,7 +24,7 @@ public class DrawPoint : MonoBehaviour
     private string gameObjec_name = "DrawTeachingPoint";
     private GameObject drawPointGameObject;
     public float sphereRadius = 0.01f;
-    public float offset = 0.1f;
+    public float offset = 0.0f;
 
     public enum DrawMode
     {
@@ -58,6 +58,7 @@ public class DrawPoint : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
         if (needUpdate) {
             needUpdate = false;
             // 删除旧的物体
@@ -155,7 +156,7 @@ public class DrawPoint : MonoBehaviour
     }
 
     private List<Vector3> interpolationPoints(List<Vector3> pointList, float interpolationDistance) {
-        if(interpolationDistance <= 0)
+        if(interpolationDistance <= 0 || pointList.Count == 0)
         {
             return pointList;
         }
@@ -212,9 +213,13 @@ public class DrawPoint : MonoBehaviour
 
         switch (drawMode) {
             case DrawMode.Line:
-                points = CalculateAverageAxis(drawPointList);
+                
+/*                points = CalculateAverageAxis(drawPointList);
                 points = SetPointOffset(points);
-                points = interpolationPoints(points, interpolation_distance);
+                points = interpolationPoints(points, interpolation_distance);*/
+
+                // 法向量寻找表面的模式
+                points = interpolationPointsByNormal(drawPointList, interpolation_distance);
                 break;
             case DrawMode.Circle:
                 points = CalculateAverageAxis(drawPointList);
@@ -233,7 +238,12 @@ public class DrawPoint : MonoBehaviour
         return points;
     }
 
-    public Vector3[] getPointsNormals(List<Vector3> points, int kNum, Vector3 viewPoint)
+    public List<Vector3> GetDrawPoints()
+    {
+        return drawPointList;
+    }
+
+     public Vector3[] getPointsNormals(List<Vector3> points, int kNum, Vector3 viewPoint)
     {
         long nowTime = ((DateTimeOffset)DateTime.Now).ToUnixTimeMilliseconds();
 
@@ -267,26 +277,83 @@ public class DrawPoint : MonoBehaviour
         }
 
         long endTime = ((DateTimeOffset)DateTime.Now).ToUnixTimeMilliseconds();
-        Debug.Log("【DrawPoints】法线计算完成 cost time:" + (endTime - nowTime) + "ms");
+        //Debug.Log("【DrawPoints】法线计算完成 cost time:" + (endTime - nowTime) + "ms");
 
         return normals;
     }
 
+
+    private List<Vector3> interpolationPointsByNormal(List<Vector3> pointList, float interpolationDistance)
+    {
+        if (interpolationDistance <= 0)
+        {
+            return pointList;
+        }
+        Vector3 viewPoint = Camera.main.transform.position;
+        Vector3[] pointsNormal = getPointsNormals(pointList, 30, viewPoint);
+
+        List<Vector3> interpolatedPoints = new List<Vector3>();
+        for (int i = 0; i < pointList.Count - 1; i++)
+        {
+            // 将当前点添加到插值列表
+            interpolatedPoints.Add(pointList[i]);
+            // 计算两点间的距离
+            float distance = Vector3.Distance(pointList[i], pointList[i + 1]);
+            // 计算需要插入多少中间点
+            int pointsToInsert = Mathf.FloorToInt(distance / interpolationDistance);
+
+            // 插入中间点
+            for (int j = 1; j <= pointsToInsert; j++)
+            {
+                float lerpFactor = j / (float)(pointsToInsert + 1);
+                Vector3 interpolatedPoint = Vector3.Lerp(pointList[i], pointList[i + 1], lerpFactor);
+                Vector3 interpolatedPointNormal = Vector3.Slerp(pointsNormal[i], pointsNormal[i + 1], lerpFactor);
+                Vector3 pointCloudSurfacePoint = GetPointCloudSurfacePointByPointAndNormal(interpolatedPoint, interpolatedPointNormal, viewPoint);
+
+                interpolatedPoints.Add(pointCloudSurfacePoint);
+            }
+        }
+        // 添加最后一个点
+        interpolatedPoints.Add(pointList[pointList.Count - 1]);
+        return interpolatedPoints;
+    }
+
     // 根据当前点和当前点的法向量获得点云表面的点
-    public Vector3 GetPointCloudSurfacePointByPointAndNormal(Vector3 selectPoint, Vector3 selectPointNormal, 
-        Vector3 viewPoint, Vector3[] pointCloudVector3s, GameObject pointCloudObject) {
+    public Vector3 GetPointCloudSurfacePointByPointAndNormal(Vector3 selectPoint, Vector3 selectPointNormal, Vector3 viewPoint) {
         
         Vector3 viewNormal = (selectPoint - viewPoint).normalized;
         Ray viewRay = new Ray(viewPoint, viewNormal);
+
         if (Physics.Raycast(viewRay, out RaycastHit hit))
         {
             Vector3 hitPoint = hit.point;
-            if(Vector3.Distance(hitPoint, selectPoint) < 0.001f)
+            if (Vector3.Distance(hitPoint, selectPoint) < 0.001f)
             {
                 return selectPoint;
             }
-            return Vector3.zero;
+            else
+            {
+                // 判断是否需要将法向量取反
+                Vector3 selectSearchNormal = selectPointNormal;
+                Vector3 select2hitPointNormal = (hitPoint - selectPoint).normalized;
+                if (Vector3.Dot(select2hitPointNormal, selectSearchNormal) < 0)
+                {
+                    selectSearchNormal *= -1;
+                }
 
+                Ray SearchRay = new Ray(selectPoint, selectSearchNormal);
+                if (Physics.Raycast(SearchRay, out RaycastHit searchHit, 0.5f))
+                {
+                    Debug.Log($"【GetPointCloudSurfacePointByPointAndNormal】 寻找到点云表面的点 \n" +
+                        $" name:{searchHit.collider.name} point:{searchHit.point}");
+                    return searchHit.point;
+                }
+                else
+                {
+                    Debug.Log($"【GetPointCloudSurfacePointByPointAndNormal】 未寻找到点云表面的点");
+                    return selectPoint;
+                }
+            }
         }
         else
         {

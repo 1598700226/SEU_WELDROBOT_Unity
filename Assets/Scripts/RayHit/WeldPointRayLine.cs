@@ -35,16 +35,8 @@ public class WeldPointRayLine : MonoBehaviour
         RaycastHit hit;
         if (Physics.Raycast(start, direction, out hit))
         {
-            if (hit.collider.name.ToLower().Contains("pointcloud"))
-            {
-                lineRenderer.SetPosition(0, start);
-                lineRenderer.SetPosition(1, hit.point);
-            }
-            else
-            {
-                lineRenderer.SetPosition(0, start);
-                lineRenderer.SetPosition(1, end);
-            }
+            lineRenderer.SetPosition(0, start);
+            lineRenderer.SetPosition(1, hit.point);
         }
     }
 }

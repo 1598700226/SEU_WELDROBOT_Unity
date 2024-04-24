@@ -411,7 +411,10 @@ public class DataCommon : MonoBehaviour
         int modeIndex = dropdown_teachingOperateMode.value;
 
         RayTest rayTest = GameObject.Find("Main Camera").GetComponent<RayTest>();
+        float interpolation_distance = float.Parse(input_point_interpolated_distance.text);
         rayTest.isTeachingOperateOpen = true;
+        rayTest.interpolationDistance = interpolation_distance;
+
         switch (modeIndex) 
         {
             case 0:
@@ -472,7 +475,7 @@ public class DataCommon : MonoBehaviour
         {
             float interpolation_distance = float.Parse(input_point_interpolated_distance.text);
             DrawPoint drawPoint = GameObject.Find("TeachingOperate").GetComponent<DrawPoint>();
-            List<Vector3> points = drawPoint.GetPoints(interpolation_distance);
+            List<Vector3> points = drawPoint.GetDrawPoints();
 
             // 转换到ros坐标系
             List<double[]> rosPosition = new List<double[]>();

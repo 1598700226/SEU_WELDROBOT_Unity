@@ -22,6 +22,7 @@ public class RayTest : MonoBehaviour
     }
     public TeachingOperateMode teachingOperateMode; // 示教模式
     public float teachingOperateParam; // 示教参数
+    public float interpolationDistance; // 插值参数
 
     void Start()
     {
@@ -50,7 +51,7 @@ public class RayTest : MonoBehaviour
                 Debug.Log("位置：" + hit.point + "name:" + hit.collider.gameObject.name);
                 hitPoint = hit.point;
 
-                if (isTeachingOperateOpen && teachingOperate != null)
+                if (isTeachingOperateOpen)
                 {
                     DrawPoint drawPoint = teachingOperate.GetComponent<DrawPoint>();
                     drawPoint.drawParam = teachingOperateParam;
@@ -86,13 +87,19 @@ public class RayTest : MonoBehaviour
                 }
             }
 
-            Physics.queriesHitBackfaces = false;
+            //Physics.queriesHitBackfaces = false;
         }
 
         // 右键按下, 关闭示教功能
         if (Input.GetMouseButtonDown(1))
         {
-            isTeachingOperateOpen = false;
+            if (isTeachingOperateOpen)
+            {
+                DrawPoint drawPoint = teachingOperate.GetComponent<DrawPoint>();
+                drawPoint.drawPointList = drawPoint.GetPoints(interpolationDistance);
+                drawPoint.needUpdate = true;
+                isTeachingOperateOpen = false;
+            }
         }
     }
 
