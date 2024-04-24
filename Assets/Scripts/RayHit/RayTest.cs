@@ -15,9 +15,10 @@ public class RayTest : MonoBehaviour
     public bool isTeachingOperateOpen = false;  // 示教功能是否开启
     public enum TeachingOperateMode
     {
-        Line,  //线
-        Circle, // 圆
-        Curve // 回字型
+        Line,   //  线
+        Circle, //  圆
+        Curve,  //  回字型
+        Point   //  点
     }
     public TeachingOperateMode teachingOperateMode; // 示教模式
     public float teachingOperateParam; // 示教参数
@@ -74,6 +75,11 @@ public class RayTest : MonoBehaviour
                                     drawPoint.drawPointList[2], 
                                     teachingOperateParam);
                             }
+                            drawPoint.needUpdate = true;
+                            break;
+                        case TeachingOperateMode.Point:
+                            drawPoint.drawMode = DrawPoint.DrawMode.Point;
+                            drawPoint.drawPointList.Add(hitPoint);
                             drawPoint.needUpdate = true;
                             break;
                     }

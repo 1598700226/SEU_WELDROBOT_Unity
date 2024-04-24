@@ -30,7 +30,8 @@ public class DrawPoint : MonoBehaviour
     {
         Line,
         Circle,
-        Curve
+        Curve,
+        Point
     }
     public DrawMode drawMode;
     public float drawParam;
@@ -154,6 +155,11 @@ public class DrawPoint : MonoBehaviour
     }
 
     private List<Vector3> interpolationPoints(List<Vector3> pointList, float interpolationDistance) {
+        if(interpolationDistance <= 0)
+        {
+            return pointList;
+        }
+
         List<Vector3> interpolatedPoints = new List<Vector3>();
         for (int i = 0; i < pointList.Count - 1; i++)
         {
@@ -219,6 +225,9 @@ public class DrawPoint : MonoBehaviour
                 points = SetPointOffset(points);
                 points = interpolationPoints(points, interpolation_distance);
                 break;
+            case DrawMode.Point:
+                points = drawPointList;
+                break;
         }
 
         return points;
@@ -261,5 +270,27 @@ public class DrawPoint : MonoBehaviour
         Debug.Log("【DrawPoints】法线计算完成 cost time:" + (endTime - nowTime) + "ms");
 
         return normals;
+    }
+
+    // 根据当前点和当前点的法向量获得点云表面的点
+    public Vector3 GetPointCloudSurfacePointByPointAndNormal(Vector3 selectPoint, Vector3 selectPointNormal, 
+        Vector3 viewPoint, Vector3[] pointCloudVector3s, GameObject pointCloudObject) {
+        
+        Vector3 viewNormal = (selectPoint - viewPoint).normalized;
+        Ray viewRay = new Ray(viewPoint, viewNormal);
+        if (Physics.Raycast(viewRay, out RaycastHit hit))
+        {
+            Vector3 hitPoint = hit.point;
+            if(Vector3.Distance(hitPoint, selectPoint) < 0.001f)
+            {
+                return selectPoint;
+            }
+            return Vector3.zero;
+
+        }
+        else
+        {
+            return selectPoint;
+        }
     }
 }

@@ -100,6 +100,8 @@ public class DataCommon : MonoBehaviour
     public TMP_InputField input_point_interpolated_distance;
     [Header("选择执行位姿")]
     public TMP_Dropdown dropdown_selectRobotPlanPose;
+    [Header("末端工具偏移")]
+    public TMP_InputField input_toolEndPoint_offset;
     [Header("规划")]
     public Button btn_robot_plan;
     [Header("重新规划")]
@@ -393,11 +395,15 @@ public class DataCommon : MonoBehaviour
     void ManualOperateSavePostionAndOrientation()
     {
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
+        AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         if (auboMaunalOperatePlan.isMaunalOperateMode)
         {
-            AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
             PoseMsg realPose = auboControl.m_RealPose;
             auboMaunalOperatePlan.AddEndPointPositionAndOrientation(realPose.position, realPose.orientation);
+        }
+        else if (auboControl.is_TeleOperation)
+        { 
+            // todo 虚拟位姿
         }
     }
 
@@ -406,7 +412,8 @@ public class DataCommon : MonoBehaviour
 
         RayTest rayTest = GameObject.Find("Main Camera").GetComponent<RayTest>();
         rayTest.isTeachingOperateOpen = true;
-        switch (modeIndex) { 
+        switch (modeIndex) 
+        {
             case 0:
                 rayTest.teachingOperateMode = RayTest.TeachingOperateMode.Line;
                 break;
@@ -416,6 +423,10 @@ public class DataCommon : MonoBehaviour
                 break;
             case 2:
                 rayTest.teachingOperateMode = RayTest.TeachingOperateMode.Curve;
+                rayTest.teachingOperateParam = float.Parse(input_teachingOperateParam.text);
+                break;
+            case 3:
+                rayTest.teachingOperateMode = RayTest.TeachingOperateMode.Point;
                 rayTest.teachingOperateParam = float.Parse(input_teachingOperateParam.text);
                 break;
         }
@@ -430,6 +441,19 @@ public class DataCommon : MonoBehaviour
 
     void RobotPointPlan() 
     {
+        AuboTrajectoryRequest auboTrajectoryRequest = GameObject.Find("aubo_i5_publish").GetComponent<AuboTrajectoryRequest>();
+        // 更新末端偏移
+        try 
+        {
+            float offset = float.Parse(input_toolEndPoint_offset.text.Trim());
+            auboTrajectoryRequest.ToolEndSettingOffset(offset);
+        }
+        catch (Exception e) 
+        {
+            Debug.Log("【RobotPointPlan】设置偏移失败, ex:" + e.Message);
+            auboTrajectoryRequest.ToolEndSettingOffset(0.1f);
+        }
+
         // 判断当前模式是否是手动拖拽示教模式
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
         if (auboMaunalOperatePlan.isMaunalOperateMode)
@@ -441,7 +465,7 @@ public class DataCommon : MonoBehaviour
             List<List<Quaternion<FLU>>> trailOrientationFLU = new List<List<Quaternion<FLU>>> {
                 orientation
             };
-            AuboTrajectoryRequest auboTrajectoryRequest = GameObject.Find("aubo_i5_publish").GetComponent<AuboTrajectoryRequest>();
+
             auboTrajectoryRequest.PublishMultiRequest(request, trailOrientationFLU, 2);
         }
         else
@@ -456,7 +480,6 @@ public class DataCommon : MonoBehaviour
                 Vector3<FLU> point = item.To<FLU>();
                 rosPosition.Add(new double[] { point.x, point.y, point.z });
             });
-            AuboTrajectoryRequest auboTrajectoryRequest = GameObject.Find("aubo_i5_publish").GetComponent<AuboTrajectoryRequest>();
 
             List<List<double[]>> request = new List<List<double[]>> {
                 rosPosition

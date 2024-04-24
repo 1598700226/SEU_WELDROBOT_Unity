@@ -10,6 +10,7 @@ using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 
 using UnityEngine;
+using Emgu.CV.CvEnum;
 
 public class AuboTrajectoryRequest : MonoBehaviour
 {
@@ -44,13 +45,24 @@ public class AuboTrajectoryRequest : MonoBehaviour
     bool is_Replan;
 
 
-    // 焊枪末端到EndPoint的位姿变换关系
-    Matrix4x4 matrix4X4_weld2EndPoints_Ros = new Matrix4x4(
+    // 焊枪末端到EndPoint的初始位姿变换关系
+    Matrix4x4 matrix4X4_weld2EndPointsInit_Ros = new Matrix4x4(
         new Vector4(1, 0, 0, 0),
         new Vector4(0, 1, 0, 0),
         new Vector4(0, 0, 1, 0),
         new Vector4(-0.1342f, 0.0049f, 0.16771f, 1)
         );
+
+    Matrix4x4 matrix4X4_weld2EndPoints_Ros = new Matrix4x4(
+        new Vector4(1, 0, 0, 0),
+        new Vector4(0, 1, 0, 0),
+        new Vector4(0, 0, 1, 0),
+        new Vector4(-0.1342f, 0.0049f, 0.16771f, 1)
+    );
+    public void ToolEndSettingOffset(float offset) 
+    {
+        matrix4X4_weld2EndPoints_Ros.m32 = matrix4X4_weld2EndPointsInit_Ros.m32 + offset;
+    }
 
     void Start()
     {
