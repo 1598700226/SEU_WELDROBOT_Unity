@@ -3,6 +3,7 @@ using RosMessageTypes.Geometry;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 using Unity.VisualScripting;
@@ -204,6 +205,12 @@ public class DataCommon : MonoBehaviour
     public Button btn_robot_stop;
     public Button btn_car_stop;
     public Button btn_everything_stop;
+
+    private bool isBtnRobotStopDown = false;
+    private bool isBtnCarStopDown = false;
+    private bool isBtnEverythingStopDown = false;
+    private Color StopDownColor = new Color(0.6f, 0.2f, 0.2f);
+    private Color StopUpColor = new Color(0.2f, 0.6f, 0.2f);
     #endregion
 
     #region 控制箱面板
@@ -783,19 +790,50 @@ public class DataCommon : MonoBehaviour
     /**********************************************急停相关事件******************************************/
     void RobotStop()
     {
-        AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
-        auboControl.CancelArmAction();
+        isBtnRobotStopDown = !isBtnRobotStopDown;
+        if (isBtnRobotStopDown)
+        {
+            btn_robot_stop.image.color = StopDownColor;
+            AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
+            auboControl.CancelArmAction();
+        }
+        else
+        {
+            btn_robot_stop.image.color = StopUpColor;
+        }
+
     }
 
     void CarStop()
-    { 
-        UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
-        unitySubscription_Map.NaviCancel();
+    {
+        isBtnCarStopDown = !isBtnCarStopDown;
+        if (isBtnCarStopDown)
+        {
+            UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
+            unitySubscription_Map.NaviCancel();
+            btn_car_stop.image.color = StopDownColor;
+        }
+        else
+        {
+            btn_car_stop.image.color = StopUpColor;
+        }
     }
 
     void EveryThingStop()
     { 
-    
+        isBtnEverythingStopDown = !isBtnEverythingStopDown;
+        if (isBtnEverythingStopDown)
+        {
+            AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
+            auboControl.CancelArmAction();
+            UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
+            unitySubscription_Map.NaviCancel();
+            btn_everything_stop.image.color = StopDownColor;
+        }
+        else
+        {
+            btn_everything_stop.image.color = StopUpColor;
+        }
     }
 
     /**********************************************控制箱事件******************************************/
