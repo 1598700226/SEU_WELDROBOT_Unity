@@ -791,15 +791,16 @@ public class DataCommon : MonoBehaviour
     void RobotStop()
     {
         isBtnRobotStopDown = !isBtnRobotStopDown;
+        AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         if (isBtnRobotStopDown)
         {
-            btn_robot_stop.image.color = StopDownColor;
-            AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
-            auboControl.CancelArmAction();
+            btn_robot_stop.image.color = StopDownColor;            
+            auboControl.ArmEmergencyAction(true);
         }
         else
         {
             btn_robot_stop.image.color = StopUpColor;
+            auboControl.ArmEmergencyAction(false);
         }
 
     }
@@ -822,17 +823,28 @@ public class DataCommon : MonoBehaviour
     void EveryThingStop()
     { 
         isBtnEverythingStopDown = !isBtnEverythingStopDown;
+
+        AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
+        UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
+
         if (isBtnEverythingStopDown)
         {
-            AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
-            auboControl.CancelArmAction();
-            UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
+            
+            auboControl.ArmEmergencyAction(true);
+            //这里似乎会有逻辑错误，改变总急停时，应该也需要改变对应的标志变量及颜色    三个急停之间的逻辑关系似乎需要整理一下 
+            isBtnRobotStopDown = true;
+            btn_robot_stop.image.color = StopDownColor;
+            // ----------------------------------           
             unitySubscription_Map.NaviCancel();
             btn_everything_stop.image.color = StopDownColor;
         }
         else
         {
             btn_everything_stop.image.color = StopUpColor;
+            //同上
+            auboControl.ArmEmergencyAction(false);
+            btn_robot_stop.image.color = StopUpColor;
+            //-------------
         }
     }
 
