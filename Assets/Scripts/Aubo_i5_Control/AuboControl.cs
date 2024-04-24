@@ -79,7 +79,9 @@ public class AuboControl : MonoBehaviour
     const string m_JointTopicName = "/aubo_joints_state";
     const string m_SycServiceName = "/aubo_unity_syc";
     const string m_JointPubName = "/aubo_target_joints";
-    const string m_ArmCancelName = "aubo_driver/cancel_trajectory";
+    const string m_EmergencyStopName = "/aubo_driver/tele_stop_action";
+    const string m_ControllerSwitchName = "/aubo_driver/controller_switch";
+    
 
     // Gameobject of robot
     GameObject m_Aubo;
@@ -121,12 +123,14 @@ public class AuboControl : MonoBehaviour
         // 同步的问题： 发送服务:untiy->ros   订阅话题:ros->unity
         // Topic of robot joint states
         m_Ros.Subscribe<AuboJointsStateMsg>(m_JointTopicName, SubJointState);
-
+        // 实时发布虚拟关节角的话题，然而现在底层driver并没有改好，暂时不能用
         m_Ros.RegisterPublisher<AuboJointsMsg>(m_JointPubName);
-
+        // 同步虚-实机械臂的服务
         m_Ros.RegisterRosService<AuboSycServiceRequest, AuboSycServiceResponse>(m_SycServiceName);
-
-        m_Ros.RegisterPublisher<UInt8Msg>(m_ArmCancelName);
+        // 急停的话题 0-非急停  1-急停
+        m_Ros.RegisterPublisher<UInt8Msg>(m_EmergencyStopName);
+        // 控制器选择的话题 0-Aubo API  1-Ros Contr0ller
+        m_Ros.RegisterPublisher<Int32Msg>(m_ControllerSwitchName);
 
         // init
         AuboToStart();
@@ -203,12 +207,34 @@ public class AuboControl : MonoBehaviour
 
     }
 
-    //暂停机械臂动作，暂停后不可恢复原系列动作
-    public void CancelArmAction()
+    //机械臂急停
+    public void ArmEmergencyAction(bool stop_enable)
     {
         UInt8Msg pub_data = new UInt8Msg();
-        pub_data.data = 1;
-        m_Ros.Publish(m_ArmCancelName, pub_data);
+        if (stop_enable)
+        {
+            pub_data.data = 1;    //急停
+        }
+        else
+        {
+            pub_data.data = 0;   //取消急停
+        }
+        m_Ros.Publish(m_EmergencyStopName, pub_data);
+    }
+
+    //机械臂控制模式选择
+    public void RobotControllerSwitch(int flag)
+    {
+        Int32Msg pub_msg = new Int32Msg();
+        if (flag == 0)
+        {
+            pub_msg.data = 0;  // 0 - Aubo Api/示教器控制
+        }
+        else if (flag == 1)
+        {
+            pub_msg.data = 1;  // 1 - Ros控制
+        }
+        m_Ros.Publish(m_ControllerSwitchName, pub_msg);
     }
 
     /*

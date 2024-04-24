@@ -82,7 +82,9 @@ public class Kinematics : MonoBehaviour
     private double[] slaver_current_joints = new double[6];
     //private double[] slaver_previous_joints = new double[6];
     [SerializeField]
-    private double[] slaver_current_position = new double[3];
+    private double[] slaver_current_position = new double[3];    //虚拟机械臂当前位置
+    [SerializeField]
+    private double[] slaver_current_quat = new double[4];       //虚拟机械臂当前位姿
     private Matrix4x4 slaver_current_oritation = new Matrix4x4();
     private double[,] slaver_current_matrix = new double[4, 4];
 
@@ -145,6 +147,7 @@ public class Kinematics : MonoBehaviour
         slaver_current_position[0] = slaver_current_matrix[0, 3];
         slaver_current_position[1] = slaver_current_matrix[1, 3];
         slaver_current_position[2] = slaver_current_matrix[2, 3];
+        slaver_current_quat = RotMatrixtoQuat(slaver_current_matrix);
 
         Transform_Ros_Touch = Matrix4x4.zero;
         /*
@@ -181,6 +184,7 @@ public class Kinematics : MonoBehaviour
             slaver_current_position[1] = slaver_current_matrix[1, 3];
             slaver_current_position[2] = slaver_current_matrix[2, 3];
             slaver_current_oritation = DoubleMatrixToRotation(slaver_current_matrix);
+            slaver_current_quat = RotMatrixtoQuat(slaver_current_matrix);
 
 
             Array.Copy(master_current_position, master_start_position, master_current_position.Length);
@@ -301,6 +305,7 @@ public class Kinematics : MonoBehaviour
                         slaver_current_position[1] = slaver_current_matrix[1, 3];
                         slaver_current_position[2] = slaver_current_matrix[2, 3];
                         slaver_current_oritation = DoubleMatrixToRotation(slaver_current_matrix);
+                        slaver_current_quat = RotMatrixtoQuat(slaver_current_matrix);
 
                         //i_aubocontrol.PubJoints(slaver_current_joints);
 
