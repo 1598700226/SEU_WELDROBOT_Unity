@@ -66,8 +66,10 @@ public class AuboTrajectoryRequest : MonoBehaviour
 
     void Start()
     {
-        Quaternion<FLU>  pose_orientation = new Quaternion<FLU>(0.698678f, 0.710840f, 0.066345f, 0.046496f);//i_controller.m_VerticalOrientation.To<FLU>();
+        Quaternion<FLU> pose_orientation = new Quaternion<FLU>(0.698678f, 0.710840f, 0.066345f, 0.046496f);//i_controller.m_VerticalOrientation.To<FLU>();
         Debug.Log( $"¡¾pose_orientation.To<RUF>¡¿{pose_orientation.To<RUF>()}");
+        Quaternion unity = new Quaternion(pose_orientation.To<RUF>().x, pose_orientation.To<RUF>().y, pose_orientation.To<RUF>().z, pose_orientation.To<RUF>().w);
+        Debug.Log($"¡¾pose_orientation eular¡¿{unity.eulerAngles} {unity} {unity.To<FLU>()}");
         // Initialize the control instance
         i_controller = GetComponent<AuboControl>();
 
