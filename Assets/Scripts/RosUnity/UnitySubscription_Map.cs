@@ -22,8 +22,9 @@ public class UnitySubscription_Map : MonoBehaviour
     public string cancelTopicName = "/move_base/cancel";    // 急停topic
 
 
-    public string navi_nowpostion_topic = "/amcl_pose";
+    public string navi_nowpostion_topic = "/hhr_map_pose";
     public Vector2 nowPosition = Vector2.zero;
+    public bool hasNewNowPositionReceive = false;
 
     public void Start()
     {
@@ -51,7 +52,6 @@ public class UnitySubscription_Map : MonoBehaviour
 
     void MapCall(RosMessageTypes.Nav.OccupancyGridMsg occupancyGridMsg)
     {
-        hasNewDataReceive = false;
         int width = (int)occupancyGridMsg.info.width;
         int height = (int)occupancyGridMsg.info.height;
         int[,] temp_pixel = new int[height, width];
@@ -80,8 +80,10 @@ public class UnitySubscription_Map : MonoBehaviour
 
     void NowPositionCall(RosMessageTypes.Geometry.PoseWithCovarianceStampedMsg msg) 
     {
+        // nowPosition是小车发来图像中的位置 
         nowPosition = new Vector2((float)(msg.pose.pose.position.x / map_resolution + oriPosition.x),
-            (float)(msg.pose.pose.position.y / map_resolution + oriPosition.y));
+            (float)(oriPosition.y - msg.pose.pose.position.y / map_resolution));
+        hasNewNowPositionReceive = true;
         Debug.Log($"【NowPositionCall】收到当前位置 {nowPosition} {msg.pose.pose.position}");
     }
 

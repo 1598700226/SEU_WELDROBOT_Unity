@@ -128,6 +128,8 @@ public class DataCommon : MonoBehaviour
     public Toggle toggle_rosMapSubscriptionSelect;
     [Header("是否视图局部放大")]
     public Toggle toggle_LocalMagnificationSelect;
+    [Header("速度显示与设置")]
+    public TMP_InputField input_carSpeedSetting;
     [Header("更新Map设置")]
     public Button btn_map_settingUpdate;
     [Header("A星算法规划")]
@@ -388,14 +390,14 @@ public class DataCommon : MonoBehaviour
         auboMaunalOperatePlan.ClearData();
         if (auboMaunalOperatePlan.isMaunalOperateMode)
         {
-            btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "拖拽示教模式：开";
+            btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "示教器模式：开";
             // add user prompt dialog
             ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
             modelDialogControl.ShowDialog("注意！重要！", "开启拖拽示教模式后不能使用其他模式！");
         }
         else
         {
-            btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "拖拽示教模式：关";
+            btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "示教器模式：关";
         }
     }
 
@@ -585,6 +587,7 @@ public class DataCommon : MonoBehaviour
     void PGMUpdateSetting() {
         PGMFileReader pgmFileReader = GameObject.Find("RawImageNavigationMap").GetComponent<PGMFileReader>();
         UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
+        UnityPublish_MoveCommand unityPublish_MoveCommand = GameObject.Find("RosCarMove").GetComponent<UnityPublish_MoveCommand>();
         pgmFileReader.pgmFileDir = input_pgmFileDir.text;
         pgmFileReader.pgmFilePath = input_pgmFilePath.text;
         pgmFileReader.isUpdatePGMMapOnce = true;
@@ -598,6 +601,17 @@ public class DataCommon : MonoBehaviour
         }
         else {
             unitySubscription_Map.UnSubscribeTopics();
+        }
+
+        try
+        {
+            float speed = float.Parse(input_carSpeedSetting.text);
+            unityPublish_MoveCommand.SetSpeed(speed);
+        }
+        catch (Exception ex)
+        {
+            Debug.Log("【PGMUpdateSetting】速度设置失败 ex:" + ex.Message);
+            unityPublish_MoveCommand.SetSpeed(unityPublish_MoveCommand.min_speed);
         }
     }
 
@@ -676,7 +690,7 @@ public class DataCommon : MonoBehaviour
             ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
             modelDialogControl.ShowDialog("注意！重要！", "开启遥操作模式后不能使用其他模式！");
         }
-        else 
+        else
         {
             btn_aubo_teleOperate.GetComponentInChildren<TMP_Text>().text = "遥操作模式：关";
         }

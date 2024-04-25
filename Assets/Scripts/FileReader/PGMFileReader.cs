@@ -41,6 +41,7 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public bool isLocalMagnification = true;
 
     // 定位点显示
+    public int PointShowSize = 10; 
     public Vector2 nowPosition = Vector2.zero;                     // unity图片坐标系下的点
     public Vector2 nowPosition_actual = Vector2.zero;
 
@@ -67,9 +68,9 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                 updateFilePath = pgmFilePath;
             }
 
-            Debug.Log("【PGMFileReader】更新PGM地图文件：" + updateFilePath);
             bool ret = UploadPGMMap(updateFilePath);
             if (ret) {
+                Debug.Log("【PGMFileReader】更新PGM地图文件：" + updateFilePath);
                 UpdateRawImage(width, height, pixels, maxPixelValue);
             }
         }
@@ -111,15 +112,43 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         if (isReceviceRosMapTopic) {
             UnitySubscription_Map unitySubscription_Map = RosMapTopicsServer.GetComponent<UnitySubscription_Map>();
             if (unitySubscription_Map.hasNewDataReceive) {
+                unitySubscription_Map.hasNewDataReceive = false;
                 pixels = unitySubscription_Map.pixel;
                 width = unitySubscription_Map.map_width;
                 height = unitySubscription_Map.map_height;
                 maxPixelValue = unitySubscription_Map.max_pixel;
 
-                nowPosition_actual = unitySubscription_Map.oriPosition;
-                nowPosition = new Vector2(nowPosition_actual.x, height - nowPosition_actual.y);
-
                 UpdateRawImage(width, height, pixels, maxPixelValue);
+            }
+
+            if (unitySubscription_Map.hasNewNowPositionReceive)
+            {
+                unitySubscription_Map.hasNewNowPositionReceive = false;
+                nowPosition_actual = unitySubscription_Map.nowPosition;
+                nowPosition = new Vector2(nowPosition_actual.x, height - nowPosition_actual.y);
+                List<Vector2> points = new List<Vector2>
+                {
+                    nowPosition
+                };
+
+                // Astar search path
+                if (nowPosition == Vector2.zero || mouseDownPositon == Vector2.zero)
+                {
+                    return;
+                }
+                AStarAlgorithm.Astar astar = new AStarAlgorithm.Astar(pixels,
+                    width, height, 10);
+                List<Vector2> pathPoints = astar.getPath(nowPosition, mouseDownPositon);
+                if (pathPoints == null)
+                {
+                    Debug.Log("【Astar】路径规划失败，可能终点不可达");
+                }
+                else 
+                {
+                    points.AddRange(pathPoints);
+                }
+                points.Add(mouseDownPositon);
+                UpdatePostionShow(points, 10, true);
             }
         }
     }
@@ -244,6 +273,7 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         // 更新图像控件的大小并获取缩放比例
         imageShow_width_scala = img_width / rawImage.rectTransform.rect.width;
         imageShow_height_scala = img_height / rawImage.rectTransform.rect.height;
+        PointShowSize = img_width / 80;
     }
 
     private Vector2 MousePositionRelativeToImagePosition() 
@@ -322,12 +352,15 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         List<Vector2> points = new List<Vector2>();
         points.Add(nowPosition);
         points.Add(mouseDownPositon);
-        UpdatePostionShow(points, 5, true);
+        UpdatePostionShow(points, 10, true);
     }
 
     public void UpdatePostionShow(List<Vector2> positions, int areaSize, bool isShow) {
         if (pgmTexture2D == null)
+        {
+            Debug.Log("【PGMFileReader】UpdatePostionShow pgmTexture2D == null");
             return;
+        }
 
         // 创建一个新的Texture2D对象，尺寸和格式与原始纹理相同
         if (pgmCarPositionTexture2D != null) {
@@ -387,18 +420,18 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public void AstarPlan() 
     {
         if(nowPosition == Vector2.zero || mouseDownPositon == Vector2.zero)
-        { 
+        {
             return;
         }
 
         AStarAlgorithm.Astar astar = new AStarAlgorithm.Astar(pixels,
-            width, height, 3);
+            width, height, 10);
         List<Vector2> pathPoints = astar.getPath(nowPosition, mouseDownPositon);
         if (pathPoints == null)
         {
             Debug.Log("【Astar】路径规划失败，可能终点不可达");
             return;
         }
-        UpdatePostionShow(pathPoints, 3, true);
+        UpdatePostionShow(pathPoints, 10, true);
     }
 }

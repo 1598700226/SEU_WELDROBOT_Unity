@@ -8,8 +8,10 @@ public class UnityPublish_MoveCommand : MonoBehaviour
 {
     ROSConnection ros;
     public string topicName = "/smoother_cmd_vel";
-    public float move_speed = 1.0f;
-    public float turn_speed = 1.0f;
+    public float move_speed = 0.1f;
+    public float turn_speed = 0.1f;
+    public float max_speed = 0.3f;
+    public float min_speed = 0.1f;
 
     public Button forwardLeftBtn;
     public Button forwardBtn;
@@ -119,5 +121,12 @@ public class UnityPublish_MoveCommand : MonoBehaviour
         {
             SendMoveCommandtoTopic(0, 0, 0, -1);
         }
+    }
+
+    public void SetSpeed(float speed) 
+    {
+        float itemSpeed = speed > max_speed ? max_speed : speed < min_speed ? min_speed : speed;
+        move_speed = itemSpeed;
+        turn_speed = itemSpeed;
     }
 }

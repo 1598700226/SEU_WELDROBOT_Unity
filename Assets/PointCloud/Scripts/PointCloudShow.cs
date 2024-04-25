@@ -31,6 +31,8 @@ public class PointCloudShow : MonoBehaviour
     public static int pointCloudDelayShow = 15;
     public int numPoints;
     public int numTriangles;
+    public float PointCloudTriangleAngleLimit = 1f;             // 点云三角化角度限制
+    public float PointCloudTriangleAreaLimit = 50f;             // 点云三角化面积限制
 
     private int limitPoints = 65001;
 
@@ -223,7 +225,10 @@ public class PointCloudShow : MonoBehaviour
                     // 使用海伦公式计算面积
                     double area = Math.Sqrt(s * (s - a) * (s - b) * (s - c));
                     // 剔除异常面片
-                    if (angleAInRadians < 1 || angleBInRadians < 1 || angleCInRadians < 1 || area > 50)
+                    if (angleAInRadians < PointCloudTriangleAngleLimit || 
+                        angleBInRadians < PointCloudTriangleAngleLimit || 
+                        angleCInRadians < PointCloudTriangleAngleLimit || 
+                        area > PointCloudTriangleAreaLimit)
                     {
                         ;
                     }

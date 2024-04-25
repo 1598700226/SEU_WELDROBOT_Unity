@@ -85,6 +85,8 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     public Vector3 pointCloudPosition = new(0, -400, 900);      // 点云的位置信息，单位mm
     public bool IsSavePointCloud = false;                       // 保存点云数据
     public String PointCloudSavaDirPath = "";                   // 保存的位置
+    public float PointCloudTriangleAngleLimit = 1f;             // 点云三角化角度限制
+    public float PointCloudTriangleAreaLimit = 50f;             // 点云三角化面积限制
 
     /*############## 棋盘格与相机标定 ##############*/
     private int height_num = 5;
@@ -630,7 +632,10 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                 // 使用海伦公式计算面积
                 double area = Math.Sqrt(s * (s - a) * (s - b) * (s - c));
                 // 剔除异常面片
-                if (angleAInRadians < 1 || angleBInRadians < 1 || angleCInRadians < 1 || area > 50)
+                if (angleAInRadians < PointCloudTriangleAngleLimit ||
+                    angleBInRadians < PointCloudTriangleAngleLimit ||
+                    angleCInRadians < PointCloudTriangleAngleLimit || 
+                    area > PointCloudTriangleAreaLimit)
                 {
                     ;
                 }
@@ -688,7 +693,10 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                 double area = Math.Sqrt(s * (s - a) * (s - b) * (s - c));
                 
                 // 剔除异常面片
-                if (angleAInRadians < 1 || angleBInRadians < 1 || angleCInRadians < 1 || area > 50)
+                if (angleAInRadians < PointCloudTriangleAngleLimit || 
+                    angleBInRadians < PointCloudTriangleAngleLimit || 
+                    angleCInRadians < PointCloudTriangleAngleLimit || 
+                    area > PointCloudTriangleAreaLimit)
                 {
                     ;
                 }
