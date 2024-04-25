@@ -62,6 +62,7 @@ public class AuboControl : MonoBehaviour
 
     // 是否进入遥操作模式      ---------*******记得做互斥的修改********-------------
     public bool is_TeleOperation = false;
+    public bool is_AuboApi = false;           // false -- 控制器是ros-controller     true -- 控制器是aubo-api
 
 
     // Velocity of real robot
@@ -143,6 +144,10 @@ public class AuboControl : MonoBehaviour
     {
         // update the virtual joints states in time
         m_VirtualJointsState = GetCurrenJoints().joints;
+        if (is_AuboApi)
+        {
+            SetJointState(m_RealJointsState);
+        }
 
 
     }
@@ -229,10 +234,12 @@ public class AuboControl : MonoBehaviour
         if (flag == 0)
         {
             pub_msg.data = 0;  // 0 - Aubo Api/示教器控制
+            is_AuboApi = true;  
         }
         else if (flag == 1)
         {
             pub_msg.data = 1;  // 1 - Ros控制
+            is_AuboApi = false; 
         }
         m_Ros.Publish(m_ControllerSwitchName, pub_msg);
     }

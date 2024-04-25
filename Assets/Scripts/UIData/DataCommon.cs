@@ -386,11 +386,13 @@ public class DataCommon : MonoBehaviour
     void ManualOperateStart() 
     {
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
+        AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         auboMaunalOperatePlan.isMaunalOperateMode = !auboMaunalOperatePlan.isMaunalOperateMode;
         auboMaunalOperatePlan.ClearData();
         if (auboMaunalOperatePlan.isMaunalOperateMode)
         {
             btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "示教器模式：开";
+            auboControl.RobotControllerSwitch(0);   // 0 controller - AuboApi
             // add user prompt dialog
             ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
             modelDialogControl.ShowDialog("注意！重要！", "开启拖拽示教模式后不能使用其他模式！");
@@ -398,6 +400,7 @@ public class DataCommon : MonoBehaviour
         else
         {
             btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "示教器模式：关";
+            auboControl.RobotControllerSwitch(1);   // 1 controller - Ros Controller
         }
     }
 
