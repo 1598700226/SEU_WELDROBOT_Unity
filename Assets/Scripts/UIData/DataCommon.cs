@@ -388,9 +388,9 @@ public class DataCommon : MonoBehaviour
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         auboMaunalOperatePlan.isMaunalOperateMode = !auboMaunalOperatePlan.isMaunalOperateMode;
-        auboMaunalOperatePlan.ClearData();
         if (auboMaunalOperatePlan.isMaunalOperateMode)
         {
+            auboMaunalOperatePlan.ClearData();
             btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "示教器模式：开";
             auboControl.RobotControllerSwitch(0);   // 0 controller - AuboApi
             // add user prompt dialog
@@ -410,12 +410,21 @@ public class DataCommon : MonoBehaviour
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         if (auboMaunalOperatePlan.isMaunalOperateMode)
         {
-            PoseMsg realPose = auboControl.m_RealPose;
+            //PoseMsg realPose = auboControl.m_RealPose;
+            PoseMsg realPose = auboControl.m_Transform;
             auboMaunalOperatePlan.AddEndPointPositionAndOrientation(realPose.position, realPose.orientation);
         }
         else if (auboControl.is_TeleOperation)
-        { 
+        {
             // todo 虚拟位姿
+            Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+            double[] pose = kinematics.slaver_current_position;
+            double[] quat = kinematics.slaver_current_quat;
+            Vector3<FLU> pose_ros = new Vector3<FLU>((float)pose[0], (float)pose[1], (float)pose[2]);
+            Quaternion<FLU> quat_ros = new Quaternion<FLU>((float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]);
+/*            Vector3<FLU> pose_ros = new Vector3((float)pose[0], (float)pose[1], (float)pose[2]).To<FLU>();
+            Quaternion<FLU> quat_ros = new Quaternion((float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]).To<FLU>();
+*/            auboMaunalOperatePlan.AddEndPointPositionAndOrientation(pose_ros, quat_ros);
         }
     }
 
@@ -447,6 +456,8 @@ public class DataCommon : MonoBehaviour
         }
         DrawPoint drawPoint = GameObject.Find("TeachingOperate").GetComponent<DrawPoint>();
         drawPoint.deleteAllDrawPoint();
+        AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
+        auboMaunalOperatePlan.ClearData();
     }
 
     void DeleteLastTeachingPoint() {
@@ -471,7 +482,8 @@ public class DataCommon : MonoBehaviour
 
         // 判断当前模式是否是手动拖拽示教模式
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
-        if (auboMaunalOperatePlan.isMaunalOperateMode)
+        AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
+/*        if (auboMaunalOperatePlan.isMaunalOperateMode)
         {
             auboMaunalOperatePlan.GetPointPositonAndOrientation(out List<double[]> position, out List<Quaternion<FLU>> orientation);
             List<List<double[]>> request = new List<List<double[]>> {
@@ -483,11 +495,40 @@ public class DataCommon : MonoBehaviour
 
             auboTrajectoryRequest.PublishMultiRequest(request, trailOrientationFLU, 2);
         }
+        else if (auboControl.is_TeleOperation)
+        {
+            auboMaunalOperatePlan.GetPointPositonAndOrientation(out List<double[]> position, out List<Quaternion<FLU>> orientation);
+            List<List<double[]>> request = new List<List<double[]>> {
+                position
+            };
+            List<List<Quaternion<FLU>>> trailOrientationFLU = new List<List<Quaternion<FLU>>> {
+                orientation
+            };
+
+            auboTrajectoryRequest.PublishMultiRequest(request, trailOrientationFLU, 2);
+        }*/
+        if (auboMaunalOperatePlan.positon.Count > 0 && auboMaunalOperatePlan.orientation.Count > 0) 
+        {
+            auboMaunalOperatePlan.GetPointPositonAndOrientation(out List<double[]> position, out List<Quaternion<FLU>> orientation);
+            List<List<double[]>> request = new List<List<double[]>> {
+                position
+            };
+            List<List<Quaternion<FLU>>> trailOrientationFLU = new List<List<Quaternion<FLU>>> {
+                orientation
+            };
+
+            auboTrajectoryRequest.PublishMultiRequestEndPoint(request, trailOrientationFLU, 2);
+        }
         else
         {
             float interpolation_distance = float.Parse(input_point_interpolated_distance.text);
             DrawPoint drawPoint = GameObject.Find("TeachingOperate").GetComponent<DrawPoint>();
             List<Vector3> points = drawPoint.GetDrawPoints();
+            if (points.Count == 0)
+            {
+                Debug.Log("【DataCommon】发送的点数量为0");
+                return;
+            }
 
             // 转换到ros坐标系
             List<double[]> rosPosition = new List<double[]>();
@@ -687,6 +728,8 @@ public class DataCommon : MonoBehaviour
         auboControl.is_TeleOperation = !auboControl.is_TeleOperation;
         if (auboControl.is_TeleOperation)
         {
+            AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
+            auboMaunalOperatePlan.ClearData();
             btn_aubo_teleOperate.GetComponentInChildren<TMP_Text>().text = "遥操作模式：开";
 
             // add user prompt dialog

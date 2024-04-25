@@ -213,13 +213,13 @@ public class DrawPoint : MonoBehaviour
 
         switch (drawMode) {
             case DrawMode.Line:
-                
-/*                points = CalculateAverageAxis(drawPointList);
-                points = SetPointOffset(points);
-                points = interpolationPoints(points, interpolation_distance);*/
 
-                // 法向量寻找表面的模式
-                points = interpolationPointsByNormal(drawPointList, interpolation_distance);
+                points = CalculateAverageAxis(drawPointList);
+                points = SetPointOffset(points);
+                points = interpolationPoints(points, interpolation_distance);
+
+/*                // 法向量寻找表面的模式
+                points = interpolationPointsByNormal(drawPointList, interpolation_distance);*/
                 break;
             case DrawMode.Circle:
                 points = CalculateAverageAxis(drawPointList);

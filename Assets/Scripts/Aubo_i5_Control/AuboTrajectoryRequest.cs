@@ -61,7 +61,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
     );
     public void ToolEndSettingOffset(float offset) 
     {
-        matrix4X4_weld2EndPoints_Ros.m32 = matrix4X4_weld2EndPointsInit_Ros.m32 + offset;
+        matrix4X4_weld2EndPoints_Ros.m23 = matrix4X4_weld2EndPointsInit_Ros.m23 + offset;
     }
 
     void Start()
@@ -249,15 +249,78 @@ public class AuboTrajectoryRequest : MonoBehaviour
 
             traillists[i] = pointslists;
         }
-
-
         request.trail_list = traillists;
-
-
-
-
         m_Ros.SendServiceMessage<AuboMultiPlanServiceResponse>(m_MultiPlanServiceName, request, MultiPlanResponse);
+    }
 
+    public void PublishMultiRequestEndPoint(List<List<double[]>> trails, List<List<Quaternion<FLU>>> trailsOrientation, int type)
+    {
+        var request = new AuboMultiPlanServiceRequest();
+
+        request.velocity = i_controller.m_JointVelocity;
+
+        // when plan execute, the is_replan -> false
+        if (is_Replan == false)
+        {
+            request.current_joints = i_controller.GetCurrenJoints();
+            m_PlanCurrentJoints = i_controller.GetCurrenJoints();
+            is_Replan = true;
+        }
+        else if (is_Replan == true)
+        {
+            request.current_joints = m_PlanCurrentJoints;
+        }
+
+        //todo 检查当前真实机械臂关节角和当前虚拟的关节角是否一致，不一致需要同步
+        double sum = 0;
+        for (int i = 0; i < 6; i++)
+        {
+            sum += Math.Abs(request.current_joints.joints[i] - i_controller.m_RealJointsState[i]);
+        }
+        if (sum >= 0.02)   //1度左右
+        {
+            Debug.Log("请同步真实与虚拟机械臂！");
+            return;
+        }
+        var pose_orientation = i_controller.m_VerticalOrientation.To<FLU>();
+        var traillists = new AuboPoseListMsg[trails.Count];
+        for (int i = 0; i < trails.Count; i++)
+        {
+            var pointslists = new AuboPoseListMsg();
+            pointslists.waypoints = new PoseMsg[trails[i].Count];
+            for (int j = 0; j < trails[i].Count; j++)
+            {
+                var pose = new PoseMsg();
+                // point xyz in unity or ros
+
+                if (type == 0)
+                {
+                    pose_orientation = i_controller.m_VerticalOrientation.To<FLU>();
+                }
+                else if (type == 1)
+                {
+                    pose_orientation = i_controller.m_ParallelOrientation.To<FLU>();
+                }
+                else if (type == 2)
+                {
+                    if (trailsOrientation != null)
+                    {
+                        pose_orientation = trailsOrientation[i][j];
+                    }
+                    else
+                    {
+                        pose_orientation = i_controller.m_VerticalOrientation.To<FLU>();
+                    }
+                }
+                pose_orientation.Normalize();
+                pose.position = new PointMsg(trails[i][j][0], trails[i][j][1], trails[i][j][2]);
+                pose.orientation = pose_orientation;
+                pointslists.waypoints[j] = pose;
+            }
+            traillists[i] = pointslists;
+        }
+        request.trail_list = traillists;
+        m_Ros.SendServiceMessage<AuboMultiPlanServiceResponse>(m_MultiPlanServiceName, request, MultiPlanResponse);
     }
 
     // Ros Service Response

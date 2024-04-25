@@ -7,8 +7,8 @@ using UnityEngine;
 public class AuboMaunalOperatePlan : MonoBehaviour
 {
     public bool isMaunalOperateMode = false;
-    private List<double[]> positon = new List<double[]>();
-    private List<Quaternion<FLU>> orientation = new List<Quaternion<FLU>>();
+    public List<double[]> positon = new List<double[]>();
+    public List<Quaternion<FLU>> orientation = new List<Quaternion<FLU>>();
 
     // Start is called before the first frame update
     void Start()

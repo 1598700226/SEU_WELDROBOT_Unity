@@ -81,10 +81,9 @@ public class Kinematics : MonoBehaviour
     [SerializeField]
     private double[] slaver_current_joints = new double[6];
     //private double[] slaver_previous_joints = new double[6];
-    [SerializeField]
-    private double[] slaver_current_position = new double[3];    //虚拟机械臂当前位置
-    [SerializeField]
-    private double[] slaver_current_quat = new double[4];       //虚拟机械臂当前位姿
+
+    public double[] slaver_current_position = new double[3];    //虚拟机械臂当前位置
+    public double[] slaver_current_quat = new double[4];       //虚拟机械臂当前位姿
     private Matrix4x4 slaver_current_oritation = new Matrix4x4();
     private double[,] slaver_current_matrix = new double[4, 4];
 
