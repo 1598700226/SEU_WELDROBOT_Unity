@@ -183,6 +183,7 @@ public class DataCommon : MonoBehaviour
     public Toggle toggle_aubo_send_isJoint;
     public TMP_InputField input_aubo_speed;
 
+    public TMP_Dropdown dropDown_aubo_teleOperateMode;
     public Button btn_aubo_teleOperate;
     public Button btn_aubo_home;
     public Button btn_aubo_sync_virtual2real;
@@ -374,6 +375,8 @@ public class DataCommon : MonoBehaviour
     {
         UnitySubscription_PointCloud unitySubscription_PointCloud = GameObject.Find("RosColorDepthData").GetComponent<UnitySubscription_PointCloud>();
         unitySubscription_PointCloud.IsClearPointCloud = true;
+        PointCloudShow pointCloudShow = GameObject.Find("PointCloudShow").GetComponent<PointCloudShow>();
+        pointCloudShow.ClearPointCloud();
     }
 
     void EyeOnHandCalibrationStart()
@@ -424,7 +427,8 @@ public class DataCommon : MonoBehaviour
             Quaternion<FLU> quat_ros = new Quaternion<FLU>((float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]);
 /*            Vector3<FLU> pose_ros = new Vector3((float)pose[0], (float)pose[1], (float)pose[2]).To<FLU>();
             Quaternion<FLU> quat_ros = new Quaternion((float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]).To<FLU>();
-*/            auboMaunalOperatePlan.AddEndPointPositionAndOrientation(pose_ros, quat_ros);
+*/            
+            auboMaunalOperatePlan.AddEndPointPositionAndOrientation(pose_ros, quat_ros);
         }
     }
 
@@ -726,11 +730,29 @@ public class DataCommon : MonoBehaviour
     {
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         auboControl.is_TeleOperation = !auboControl.is_TeleOperation;
+        AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
+        auboMaunalOperatePlan.isTeleOperateMode = auboControl.is_TeleOperation;
         if (auboControl.is_TeleOperation)
         {
-            AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
             auboMaunalOperatePlan.ClearData();
             btn_aubo_teleOperate.GetComponentInChildren<TMP_Text>().text = "遥操作模式：开";
+
+            Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+            switch (dropDown_aubo_teleOperateMode.value)
+            {
+                case 0:
+                    kinematics.is_angular_only = false;
+                    kinematics.is_linear_only = false;
+                    break;
+                case 1:
+                    kinematics.is_angular_only = false;
+                    kinematics.is_linear_only = true;
+                    break;
+                case 2:
+                    kinematics.is_angular_only = true;
+                    kinematics.is_linear_only = false;
+                    break;
+            }
 
             // add user prompt dialog
             ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();

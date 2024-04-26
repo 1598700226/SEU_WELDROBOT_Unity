@@ -185,11 +185,11 @@ public class PointCloudShow : MonoBehaviour
         // 更新点云
         if (pointCloud != null)
         {
-            Transform parentTransform = pointCloud.transform;
+/*            Transform parentTransform = pointCloud.transform;
             foreach (Transform childTransform in parentTransform)
             {
                 Destroy(childTransform.gameObject);
-            }
+            }*/
         }
         else
         {
@@ -462,5 +462,17 @@ public class PointCloudShow : MonoBehaviour
 
     public Vector3[] GetPointCloudVector3Array() {
         return points;
+    }
+
+    public void ClearPointCloud()
+    {
+        if (pointCloud == null)
+            return;
+
+        Transform parentTransform = pointCloud.transform;
+        foreach (Transform childTransform in parentTransform)
+        {
+            Destroy(childTransform.gameObject);
+        }
     }
 }

@@ -44,7 +44,7 @@ public class Kinematics : MonoBehaviour
     //private double MaxQ = 175.0 / 180.0 * Math.PI;
     private double[,] AngleLimit = new double[6, 2]
     {
-        {-10.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
+        {-15.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
         {-175.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
         {-175.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
         {-175.0 / 180.0 * Math.PI, 175.0 / 180.0 * Math.PI},
@@ -314,7 +314,7 @@ public class Kinematics : MonoBehaviour
                     }
                     else
                     {
-                        UnityEngine.Debug.LogError("机械臂变化角度过大，请重新开始！");
+                        UnityEngine.Debug.Log("机械臂变化角度过大，请重新开始！");
                         TeleoperationEngaged = false;
                         return;
                     }

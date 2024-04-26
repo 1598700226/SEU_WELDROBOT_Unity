@@ -7,6 +7,7 @@ using UnityEngine;
 public class AuboMaunalOperatePlan : MonoBehaviour
 {
     public bool isMaunalOperateMode = false;
+    public bool isTeleOperateMode = false;
     public List<double[]> positon = new List<double[]>();
     public List<Quaternion<FLU>> orientation = new List<Quaternion<FLU>>();
 
@@ -30,9 +31,9 @@ public class AuboMaunalOperatePlan : MonoBehaviour
 
     public void AddEndPointPositionAndOrientation(PointMsg posiont, QuaternionMsg quaternion) 
     {
-        if(!isMaunalOperateMode)
+        if(!isMaunalOperateMode && !isTeleOperateMode)
         {
-            Debug.Log("【AuboMaunalOperatePlan】AddEndPointPositionAndOrientation fail，当前非手动拖拽示教模式");
+            Debug.Log("【AuboMaunalOperatePlan】AddEndPointPositionAndOrientation fail，当前非手动拖拽示教模式或遥操作模式");
             return;
         }
 

@@ -37,13 +37,15 @@ public class AuboControl : MonoBehaviour
     private static readonly Dictionary<RobotType, double[]> AuboHomeJoints = new Dictionary<RobotType, double[]>
     {
         { RobotType.aubo_i5, new double[6] { 0, 0, -1.54, 0, -1.52, 0 }},
-        { RobotType.aubo_i10, new double[6] { 0, 0.115909, 1.829596, 0.142811, 1.621238, 0 }}
+        //{ RobotType.aubo_i10, new double[6] { 0, 0.115909, 1.829596, 0.142811, 1.621238, 0 }}
+        { RobotType.aubo_i10, new double[6] { 0.0214, 0.10886, 1.5332, -0.14046, 1.5664, -0.0146 }}
     };
 
     private static readonly Dictionary<RobotType, double[]> AuboStartJoints = new Dictionary<RobotType, double[]>
     {
         { RobotType.aubo_i5, new double[6] { 0, 0, -1.54, 0, -1.52, 0 }},
-        { RobotType.aubo_i10, new double[6] { 0, 0.115909, 1.829596, 0.142811, 1.621238, 0 }}
+        //{ RobotType.aubo_i10, new double[6] { 0, 0.115909, 1.829596, 0.142811, 1.621238, 0 }}
+        { RobotType.aubo_i10, new double[6] { 0.0214, 0.10886, 1.5332, -0.14046, 1.5664, -0.0146 }}
     };
 
 
