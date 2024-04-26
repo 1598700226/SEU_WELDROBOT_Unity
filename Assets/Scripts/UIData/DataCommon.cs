@@ -850,7 +850,7 @@ public class DataCommon : MonoBehaviour
     /**********************************************急停相关事件******************************************/
     void RobotStop()
     {
-        isBtnRobotStopDown = !isBtnRobotStopDown;
+        isBtnRobotStopDown = !isBtnRobotStopDown | isBtnEverythingStopDown;
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         if (isBtnRobotStopDown)
         {
@@ -867,7 +867,7 @@ public class DataCommon : MonoBehaviour
 
     void CarStop()
     {
-        isBtnCarStopDown = !isBtnCarStopDown;
+        isBtnCarStopDown = !isBtnCarStopDown | isBtnEverythingStopDown;
         if (isBtnCarStopDown)
         {
             UnitySubscription_Map unitySubscription_Map = GameObject.Find("RosMapData").GetComponent<UnitySubscription_Map>();
@@ -889,22 +889,26 @@ public class DataCommon : MonoBehaviour
 
         if (isBtnEverythingStopDown)
         {
-            
+            // robot stop down
             auboControl.ArmEmergencyAction(true);
-            //这里似乎会有逻辑错误，改变总急停时，应该也需要改变对应的标志变量及颜色    三个急停之间的逻辑关系似乎需要整理一下 
             isBtnRobotStopDown = true;
             btn_robot_stop.image.color = StopDownColor;
-            // ----------------------------------           
+            // car stop down
             unitySubscription_Map.NaviCancel();
+            isBtnCarStopDown = true;
+            btn_car_stop.image.color = StopDownColor;
             btn_everything_stop.image.color = StopDownColor;
         }
         else
         {
+            // robot stop up
             btn_everything_stop.image.color = StopUpColor;
-            //同上
             auboControl.ArmEmergencyAction(false);
+            isBtnRobotStopDown = false;
+            // car stop up
+            isBtnCarStopDown = false;
             btn_robot_stop.image.color = StopUpColor;
-            //-------------
+            btn_car_stop.image.color = StopUpColor;
         }
     }
 
