@@ -36,6 +36,14 @@ public class DrawPoint : MonoBehaviour
     public DrawMode drawMode;
     public float drawParam;
 
+    public enum PoseMode
+    {
+        Vertical,
+        Parallel,
+        Normal,
+    }
+    public PoseMode poseMode;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -211,15 +219,20 @@ public class DrawPoint : MonoBehaviour
     public List<Vector3> GetPoints(float interpolation_distance) {
         List<Vector3> points = new List<Vector3>();
 
+        // todo other posemode
         switch (drawMode) {
             case DrawMode.Line:
-
-                points = CalculateAverageAxis(drawPointList);
-                points = SetPointOffset(points);
-                points = interpolationPoints(points, interpolation_distance);
-
-/*                // 法向量寻找表面的模式
-                points = interpolationPointsByNormal(drawPointList, interpolation_distance);*/
+                if(poseMode.Equals(PoseMode.Vertical))
+                {
+                    points = CalculateAverageAxis(drawPointList);
+                    points = SetPointOffset(points);
+                    points = interpolationPoints(points, interpolation_distance);
+                }
+                if (poseMode.Equals(PoseMode.Normal))
+                {
+                    // 法向量寻找表面的模式
+                    points = interpolationPointsByNormal(drawPointList, interpolation_distance);
+                }
                 break;
             case DrawMode.Circle:
                 points = CalculateAverageAxis(drawPointList);

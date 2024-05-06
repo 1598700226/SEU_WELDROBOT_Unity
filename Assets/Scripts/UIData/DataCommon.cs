@@ -434,6 +434,7 @@ public class DataCommon : MonoBehaviour
 
     void TeachingOperateBegin() {
         int modeIndex = dropdown_teachingOperateMode.value;
+        int poseModeIndex = dropdown_selectRobotPlanPose.value;
 
         RayTest rayTest = GameObject.Find("Main Camera").GetComponent<RayTest>();
         float interpolation_distance = float.Parse(input_point_interpolated_distance.text);
@@ -462,7 +463,19 @@ public class DataCommon : MonoBehaviour
         drawPoint.deleteAllDrawPoint();
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
         auboMaunalOperatePlan.ClearData();
-    }
+
+        switch (poseModeIndex)
+        {
+            case 0:
+                drawPoint.poseMode = DrawPoint.PoseMode.Vertical;
+                break;
+            case 1:
+                drawPoint.poseMode = DrawPoint.PoseMode.Parallel;
+                break;
+            case 2:
+                drawPoint.poseMode = DrawPoint.PoseMode.Normal;
+                break;
+        }
 
     void DeleteLastTeachingPoint() {
         DrawPoint drawPoint = GameObject.Find("TeachingOperate").GetComponent<DrawPoint>();
@@ -487,30 +500,6 @@ public class DataCommon : MonoBehaviour
         // 判断当前模式是否是手动拖拽示教模式
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
-/*        if (auboMaunalOperatePlan.isMaunalOperateMode)
-        {
-            auboMaunalOperatePlan.GetPointPositonAndOrientation(out List<double[]> position, out List<Quaternion<FLU>> orientation);
-            List<List<double[]>> request = new List<List<double[]>> {
-                position
-            };
-            List<List<Quaternion<FLU>>> trailOrientationFLU = new List<List<Quaternion<FLU>>> {
-                orientation
-            };
-
-            auboTrajectoryRequest.PublishMultiRequest(request, trailOrientationFLU, 2);
-        }
-        else if (auboControl.is_TeleOperation)
-        {
-            auboMaunalOperatePlan.GetPointPositonAndOrientation(out List<double[]> position, out List<Quaternion<FLU>> orientation);
-            List<List<double[]>> request = new List<List<double[]>> {
-                position
-            };
-            List<List<Quaternion<FLU>>> trailOrientationFLU = new List<List<Quaternion<FLU>>> {
-                orientation
-            };
-
-            auboTrajectoryRequest.PublishMultiRequest(request, trailOrientationFLU, 2);
-        }*/
         if (auboMaunalOperatePlan.positon.Count > 0 && auboMaunalOperatePlan.orientation.Count > 0) 
         {
             auboMaunalOperatePlan.GetPointPositonAndOrientation(out List<double[]> position, out List<Quaternion<FLU>> orientation);

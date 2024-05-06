@@ -4,6 +4,7 @@ using System.Threading;
 
 public class SerialPortControl : MonoBehaviour
 {
+
     public string receivedData;
     public string sendData;
 
@@ -97,7 +98,7 @@ public class SerialPortControl : MonoBehaviour
                     continue;
                 }
                 receivedData = data;
-                Debug.Log("¡¾SerialPortControl¡¿Received from serial port: " + receivedData);
+                Debug.Log($"¡¾SerialPortControl¡¿Received from serial port: length:{receivedData.Length} data:{receivedData}");
             }
         }
     }

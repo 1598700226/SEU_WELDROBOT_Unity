@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -99,6 +100,44 @@ public class RayTest : MonoBehaviour
                 drawPoint.drawPointList = drawPoint.GetPoints(interpolationDistance);
                 drawPoint.needUpdate = true;
                 isTeachingOperateOpen = false;
+
+                List<Vector3> normals = new List<Vector3>(drawPoint.getPointsNormals(drawPoint.drawPointList, 15, Camera.main.transform.position));
+
+                // 使用StringBuilder来构建一个字符串
+                StringBuilder sb_p = new StringBuilder();
+                // 遍历列表
+                for (int i = 0; i < drawPoint.drawPointList.Count; i++)
+                {
+                    // 将Vector3格式化为[x, y, z]
+                    sb_p.Append($"[{drawPoint.drawPointList[i].x}, " +
+                        $"{drawPoint.drawPointList[i].z}, " +
+                        $"{drawPoint.drawPointList[i].y}]");
+
+                    // 除了最后一个元素外，每个元素后面添加逗号和空格
+                    if (i < drawPoint.drawPointList.Count - 1)
+                    {
+                        sb_p.Append(", ");
+                    }
+                }
+
+                // 使用StringBuilder来构建一个字符串
+                StringBuilder sb_n = new StringBuilder();
+                // 遍历列表
+                for (int i = 0; i < normals.Count; i++)
+                {
+                    // 将Vector3格式化为[x, y, z]
+                    sb_n.Append($"[{normals[i].x}, " +
+                        $"{normals[i].z}, " +
+                        $"{normals[i].y}]");
+
+                    // 除了最后一个元素外，每个元素后面添加逗号和空格
+                    if (i < drawPoint.drawPointList.Count - 1)
+                    {
+                        sb_n.Append(", ");
+                    }
+                }
+                Debug.Log($"【drawPointList】 {sb_p}");
+                Debug.Log($"【drawPointList normals】 {sb_n}");
             }
         }
     }
