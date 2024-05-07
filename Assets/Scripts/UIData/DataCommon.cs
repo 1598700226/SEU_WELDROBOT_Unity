@@ -432,7 +432,8 @@ public class DataCommon : MonoBehaviour
         }
     }
 
-    void TeachingOperateBegin() {
+    void TeachingOperateBegin()
+    {
         int modeIndex = dropdown_teachingOperateMode.value;
         int poseModeIndex = dropdown_selectRobotPlanPose.value;
 
@@ -441,7 +442,7 @@ public class DataCommon : MonoBehaviour
         rayTest.isTeachingOperateOpen = true;
         rayTest.interpolationDistance = interpolation_distance;
 
-        switch (modeIndex) 
+        switch (modeIndex)
         {
             case 0:
                 rayTest.teachingOperateMode = RayTest.TeachingOperateMode.Line;
@@ -476,6 +477,7 @@ public class DataCommon : MonoBehaviour
                 drawPoint.poseMode = DrawPoint.PoseMode.Normal;
                 break;
         }
+    }
 
     void DeleteLastTeachingPoint() {
         DrawPoint drawPoint = GameObject.Find("TeachingOperate").GetComponent<DrawPoint>();
