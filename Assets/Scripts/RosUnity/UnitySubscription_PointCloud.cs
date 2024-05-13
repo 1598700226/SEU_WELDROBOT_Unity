@@ -47,6 +47,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     List<Vector3[]> points_mulview = new List<Vector3[]>(); // 多视角存储数据
     List<Color[]> colors_mulview = new List<Color[]>();     // 多视角存储数据
     List<ushort[]> depths_mulview = new List<ushort[]>();   // 多视角存储数据
+    List<IPoint[]> picPoints_mulview = new List<IPoint[]>();   // 多视角存储数据
 
     Matrix4x4 InitRT = new Matrix4x4(
         new Vector4(1, 0, 0, 0),
@@ -109,19 +110,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     {
         RawImageTexture = new Texture2D(Image_Width, Image_Height);
         StartCoroutine(loadRosPointCloudForWaitSecond());
-
-        // 读取手眼标定配置文件
-        EyeOnHandCalibrationData eyeOnHandCalibrationData = EyeOnHandCalibration.ReadJsonData();
-        if (eyeOnHandCalibrationData != null)
-        {
-            Debug.Log($"【UnitySubscription_PointCloud】matrix4x4_camera2endPoint ReadJsonData \n {eyeOnHandCalibrationData.ToString()}");
-            matrix4x4_camera2endPoint = eyeOnHandCalibrationData.CameraToEndPoint;
-        }
-        else
-        {
-            Debug.Log("【UnitySubscription_PointCloud】获取手眼标定数据失败，不存在标定文件");
-        }
-        
+        ReadEyeOnHandCalibrationData();
     }
 
     IEnumerator loadRosPointCloudForWaitSecond()
@@ -242,6 +231,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
             points_mulview.Add(points);
             colors_mulview.Add(Colors);
             depths_mulview.Add(Depths);
+            picPoints_mulview.Add(picPoints);
         }
 
         // 图片控件显示
@@ -341,13 +331,15 @@ public class UnitySubscription_PointCloud : MonoBehaviour
 
             IsBuliding = false;
             Debug.Log($"【相机标定】第 {target2Camera_R.Count} 次位置");
+            DebugGUI.Log($"【相机标定】第 {target2Camera_R.Count} 次位置");
         }
 
         if (IsSavePointCloud) {
             IsSavePointCloud = false;
-            StartCoroutine(SavePointCloud2OffFile(PointCloudSavaDirPath));
+            //StartCoroutine(SavePointCloud2OffFile(PointCloudSavaDirPath));
+            StartCoroutine(SavePointCloud2OffFile2PersistentDataPath());
         }
-
+        
         if (IsTest)
         {
             Matrix4x4 end2BaseTF = GetMatrixEndPoint2RosBaseFromTF();
@@ -1305,6 +1297,22 @@ public class UnitySubscription_PointCloud : MonoBehaviour
         T[2, 0] = matrix[2, 3];
     }
 
+    public void ReadEyeOnHandCalibrationData()
+    {
+        // 读取手眼标定配置文件
+        EyeOnHandCalibrationData eyeOnHandCalibrationData = EyeOnHandCalibration.ReadJsonData();
+        if (eyeOnHandCalibrationData != null)
+        {
+            Debug.Log($"【UnitySubscription_PointCloud】matrix4x4_camera2endPoint ReadJsonData \n {eyeOnHandCalibrationData}");
+            DebugGUI.Log($"【UnitySubscription_PointCloud】matrix4x4_camera2endPoint ReadJsonData \n {eyeOnHandCalibrationData}");
+            matrix4x4_camera2endPoint = eyeOnHandCalibrationData.CameraToEndPoint;
+        }
+        else
+        {
+            Debug.Log("【UnitySubscription_PointCloud】获取手眼标定数据失败，不存在标定文件");
+            DebugGUI.Log("【UnitySubscription_PointCloud】获取手眼标定数据失败，不存在标定文件");
+        }
+    }
     /**********************************************************-- 点云保存相关代码 --********************************************************/
     IEnumerator SavePointCloud2OffFile(string PointCloudSavaDirPath) {
         if (Directory.Exists(PointCloudSavaDirPath))
@@ -1338,6 +1346,83 @@ public class UnitySubscription_PointCloud : MonoBehaviour
         } else
         {
             Debug.Log($"SavePointCloud2OffFile 文件夹 {PointCloudSavaDirPath} 不存在");
+            yield return null;
+        }
+    }
+    IEnumerator SavePointCloud2OffFile2PersistentDataPath()
+    {
+        if (Directory.Exists(Application.persistentDataPath))
+        {
+            // 判断当前是单视角还是多视角
+            if (!IsMultiViewPointCloudShow)
+            {
+                if (points == null || pointsColor == null || picPoints == null)
+                    yield break;
+
+                // 获取当前时间戳到秒
+                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                // 创建文件路径
+                string filePath = Path.Combine(Application.persistentDataPath, $"pointCloud_{timestamp}.off_unity");
+                StringBuilder fileContent = new StringBuilder();
+                // 写入OFF文件头
+                fileContent.AppendLine("OFF");
+                fileContent.AppendLine($"{points.Length} 0 0");
+
+                // 写入顶点数据
+                for (int i = 0; i < points.Length; i++)
+                {
+                    int r = (int)(pointsColor[i].r * 255.0f);
+                    int g = (int)(pointsColor[i].g * 255.0f);
+                    int b = (int)(pointsColor[i].b * 255.0f);
+                    fileContent.AppendLine($"{points[i].x} {points[i].y} {points[i].z} {r} {g} {b} {picPoints[i].X} {picPoints[i].Y}");
+                    if (i % 10000 == 0)
+                    {
+                        yield return null;
+                    }
+                }
+
+                // 将字符串写入文件
+                File.WriteAllText(filePath, fileContent.ToString());
+                DebugGUI.Log($"【SavePointCloud】 保存文件至:{filePath}");
+                yield return null;
+            }
+            else
+            {
+                // 获取当前时间戳到秒
+                long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                for (int index = 0; index < points_mulview.Count; index++)
+                {
+                    // 创建文件路径
+                    string filePath = Path.Combine(Application.persistentDataPath, $"pointCloudMul_{index}_{timestamp}.off_unity");
+                    StringBuilder fileContent = new StringBuilder();
+                    // 写入OFF文件头
+                    fileContent.AppendLine("OFF");
+                    fileContent.AppendLine($"{points_mulview[index].Length} 0 0");
+
+                    // 写入顶点数据
+                    for (int i = 0; i < points_mulview[index].Length; i++)
+                    {
+                        int r = (int)(colors_mulview[index][i].r * 255.0f);
+                        int g = (int)(colors_mulview[index][i].g * 255.0f);
+                        int b = (int)(colors_mulview[index][i].b * 255.0f);
+                        fileContent.AppendLine($"{points_mulview[index][i].x} {points_mulview[index][i].y} {points_mulview[index][i].z} {r} {g} {b} {picPoints_mulview[index][i].X} {picPoints_mulview[index][i].Y}");
+                        if (i % 10000 == 0)
+                        {
+                            yield return null;
+                        }
+                    }
+
+                    // 将字符串写入文件
+                    File.WriteAllText(filePath, fileContent.ToString());
+                    DebugGUI.Log($"【SavePointCloud】 保存文件至:{filePath}");
+                    yield return null;
+                }
+            }
+        }
+        else
+        {
+            Debug.Log($"【SavePointCloud】 文件夹 {Application.persistentDataPath} 不存在");
+            DebugGUI.Log($"【SavePointCloud】 文件夹 {Application.persistentDataPath} 不存在");
             yield return null;
         }
     }

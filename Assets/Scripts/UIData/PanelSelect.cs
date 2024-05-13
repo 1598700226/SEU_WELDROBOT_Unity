@@ -12,6 +12,7 @@ public class PanelSelect : MonoBehaviour
     public Button leftButton;
     public Button rightButton;
     public Button showPanelButton;
+    public Button closeButton;
 
     private int index = 0;
 
@@ -21,6 +22,7 @@ public class PanelSelect : MonoBehaviour
         leftButton.onClick.AddListener(SwitchLeftPanel);
         rightButton.onClick.AddListener(SwitchRightPanel);
         showPanelButton.onClick.AddListener(FoldNowPanel);
+        closeButton.onClick.AddListener(CloseApplication);
         SetActivePanel(ref index);
     }
 
@@ -68,5 +70,17 @@ public class PanelSelect : MonoBehaviour
     void FoldNowPanel() 
     {
         panels[index].SetActive(!panels[index].activeSelf);
+    }
+
+    void CloseApplication()
+    {
+        // 检测是否在Unity编辑器中运行
+        #if UNITY_EDITOR
+        // 如果是，在编辑器中停止播放模式
+        UnityEditor.EditorApplication.isPlaying = false;
+        #else
+        // 如果在exe打包中关闭
+        Application.Quit();
+        #endif
     }
 }

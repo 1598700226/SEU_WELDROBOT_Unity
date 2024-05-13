@@ -123,7 +123,7 @@ public class UnityPublish_MoveCommand : MonoBehaviour
         }
     }
 
-    public void SetSpeed(float speed) 
+    public void SetSpeed(float speed)
     {
         float itemSpeed = speed > max_speed ? max_speed : speed < min_speed ? min_speed : speed;
         move_speed = itemSpeed;

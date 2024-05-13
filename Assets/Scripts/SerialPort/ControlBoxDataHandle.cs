@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ControlBoxDataHandle : MonoBehaviour
 {
@@ -12,16 +13,46 @@ public class ControlBoxDataHandle : MonoBehaviour
 
     /************接收数据格式**********/
     SerialPortControl serialPortControl;
-    int requireDataLength = 23;     // 要求的格式长度 + "\n"
+    int requireDataLength = 30;     // 要求的格式长度 + "\n"
     int buttonDataStart = 0;        // 按钮起始位
     int buttonDataLength = 5;       // 按钮数据长度
     int adDataStart = 5;            // AD起始位
-    int adDataLength = 16;          // AD数据长度
+    int adDataLength = 24;          // AD数据长度
+    int adDataEachDataSize = 3;     // AD数据占位
+
+    char[] oldButtonData = null;
+    int[] oldADData = null;
+
+    /************控制箱按键对应的数据**********/
+    /*
+    车体电源：第三位
+    机械臂电源：第二位
+    通信连接：第九位
+    激光电源：第四位
+    启动程序：第五位
+    结束程序：第六位
+    机械臂归位：第七位
+    空按钮： 第八位
+
+    机械臂急停：倒数第四位
+    机器人急停：倒数第五位
+
+    左摇杆(暂时保留)： AD2（上0 下4096) AD3(左0 右4096)
+    机械臂速度：AD7(min0 max4096)
+    行驶速度:AD6(min0 max 4096)
+    右摇杆(小车移动) : AD4(上0 下4096) AD5(左0 右4096)
+    */
 
     // Start is called before the first frame update
     void Start()
     {
         serialPortControl = GameObject.Find("ControlBoxControl").GetComponent<SerialPortControl>();
+        oldButtonData = new char[buttonDataLength * 4];
+        oldADData = new int[adDataLength / adDataEachDataSize];
+        for (int i = 0; i < oldButtonData.Length; i++)
+        {
+            oldButtonData[i] = '1';
+        }
     }
 
     // Update is called once per frame
@@ -45,7 +76,12 @@ public class ControlBoxDataHandle : MonoBehaviour
                 {
                     receiveTextShow.text = receiveDataFormat;
                 }
+                // Data Control
+                DataControl(buttonData, adData, oldButtonData, oldADData);
 
+                // record data
+                Array.Copy(buttonData, 0, oldButtonData, 0, buttonData.Length);
+                Array.Copy(adData, 0, oldADData, 0, adData.Length);
                 serialPortControl.receivedData = null;
             }
         }
@@ -72,9 +108,9 @@ public class ControlBoxDataHandle : MonoBehaviour
     private int[] ADIntArray(char[] chars)
     {
         List<int> adData = new List<int>();
-        for (int i = 0; i < chars.Length; i += 2)
+        for (int i = 0; i < chars.Length; i += adDataEachDataSize)
         {
-            string hexString = new string(new char[] { chars[i], chars[i + 1] });
+            string hexString = new string(chars, i, adDataEachDataSize);
             int number = Convert.ToInt32(hexString, 16);
             adData.Add(number);
         }
@@ -89,7 +125,7 @@ public class ControlBoxDataHandle : MonoBehaviour
         DateTime now = DateTime.Now;
         string timeString = now.ToString("yyyy-MM-dd HH:mm:ss");
         sb.Append("Time:" + timeString + "\n");
-        sb.Append("oriData:" + oridata + "\n");
+        sb.Append("oriData:\n" + oridata + "\n");
 
         // Button
         string buttonStr = new string(buttonData);
@@ -104,5 +140,73 @@ public class ControlBoxDataHandle : MonoBehaviour
         }
 
         return sb.ToString();
+    }
+
+    private void DataControl(char[] buttonData, int[] adData, char[] oldButtonData, int[] oldADData)
+    {
+        if (buttonData[8] != '0')
+        {
+            return;
+        }
+
+        DataCommon dataCommon = GameObject.Find("DataManager").GetComponent<DataCommon>();
+        UnityPublish_MoveCommand unityPublish_MoveCommand = GameObject.Find("RosCarMove").GetComponent<UnityPublish_MoveCommand>();
+        // 按钮
+        // 机械臂虚拟归位
+        if (buttonData[6] != oldButtonData[6])
+        {
+            DebugGUI.Log($"【控制箱】虚拟机械臂归位 btn_6:{buttonData[6]}");
+            dataCommon.AuboJointHome();
+        }
+        // 机械臂急停
+        if (buttonData[15] != oldButtonData[15])
+        {
+            DebugGUI.Log($"【控制箱】机械臂急停 btn_15:{buttonData[15]}");
+            dataCommon.RobotStop();
+        }
+        // 机器人急停
+        if (buttonData[16] != oldButtonData[16])
+        {
+            DebugGUI.Log($"【控制箱】机器人急停 btn_16:{buttonData[16]}");
+            dataCommon.CarStop();
+        }
+
+        // AD
+        // 行驶速度
+        if (adData[6] != oldADData[6])
+        {
+            float carSpeed = (adData[6] - 0.0f) / 4096f * (unityPublish_MoveCommand.max_speed - unityPublish_MoveCommand.min_speed) + unityPublish_MoveCommand.min_speed;
+            unityPublish_MoveCommand.SetSpeed(carSpeed);
+            dataCommon.input_carSpeedSetting.text = carSpeed.ToString("F2");
+        }
+        // 机械臂速度
+        if (adData[7] != oldADData[7])
+        {
+            float auboSpeed = (adData[7] - 0.0f) / 4096f * 0.1f + 0.05f;
+            dataCommon.input_aubo_speed.text = auboSpeed.ToString("F2");
+        }
+        // 右摇杆控制移动
+        // 前进
+        if (adData[4] < 1200)
+        {
+            DebugGUI.Log($"【控制箱】右摇杆控制<前进> ad_4:{adData[4]}");
+            unityPublish_MoveCommand.SendMoveCommandtoTopic(1, 0, 0, 0);
+        }
+        else if (adData[4] > 2300)
+        {
+            DebugGUI.Log($"【控制箱】右摇杆控制<后退> ad_4:{adData[4]}");
+            unityPublish_MoveCommand.SendMoveCommandtoTopic(-1, 0, 0, 0);
+        }
+        // 转向
+        if (adData[5] < 1200)
+        {
+            DebugGUI.Log($"【控制箱】右摇杆控制<左转> ad_5:{adData[5]}");
+            unityPublish_MoveCommand.SendMoveCommandtoTopic(0, 0, 0, 1);
+        }
+        else if (adData[5] > 2300)
+        {
+            DebugGUI.Log($"【控制箱】右摇杆控制<右转> ad_5:{adData[5]}");
+            unityPublish_MoveCommand.SendMoveCommandtoTopic(0, 0, 0, -1);
+        }
     }
 }

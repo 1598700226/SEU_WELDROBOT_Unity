@@ -291,6 +291,14 @@ public class DataCommon : MonoBehaviour
         input_pgmMousePosition.text = String.Format("({0:F3},{1:F3} )", pgmPoint.x, pgmPoint.y);
 
         AuboJointAndPoseRefresh();
+
+        // keyboard Listener
+        if (Input.GetKey(KeyCode.Space) && Input.GetKeyDown(KeyCode.P))
+        {
+            DebugGUI.Log("【keyboard Listener】保存点云数据");
+            UnitySubscription_PointCloud unitySubscription_PointCloud = GameObject.Find("RosColorDepthData").GetComponent<UnitySubscription_PointCloud>();
+            unitySubscription_PointCloud.IsSavePointCloud = true;
+        }
     }
 
     public void RefreshPointCloudUIData() {
@@ -386,7 +394,7 @@ public class DataCommon : MonoBehaviour
     }
 
     /**********************************************示教相关事件******************************************/
-    void ManualOperateStart() 
+    void ManualOperateStart()
     {
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
@@ -425,9 +433,9 @@ public class DataCommon : MonoBehaviour
             double[] quat = kinematics.slaver_current_quat;
             Vector3<FLU> pose_ros = new Vector3<FLU>((float)pose[0], (float)pose[1], (float)pose[2]);
             Quaternion<FLU> quat_ros = new Quaternion<FLU>((float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]);
-/*            Vector3<FLU> pose_ros = new Vector3((float)pose[0], (float)pose[1], (float)pose[2]).To<FLU>();
-            Quaternion<FLU> quat_ros = new Quaternion((float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]).To<FLU>();
-*/            
+            /*            Vector3<FLU> pose_ros = new Vector3((float)pose[0], (float)pose[1], (float)pose[2]).To<FLU>();
+                        Quaternion<FLU> quat_ros = new Quaternion((float)quat[0], (float)quat[1], (float)quat[2], (float)quat[3]).To<FLU>();
+            */
             auboMaunalOperatePlan.AddEndPointPositionAndOrientation(pose_ros, quat_ros);
         }
     }
@@ -484,16 +492,16 @@ public class DataCommon : MonoBehaviour
         drawPoint.deleteDrawPoint(drawPoint.drawPointList.Count);
     }
 
-    void RobotPointPlan() 
+    void RobotPointPlan()
     {
         AuboTrajectoryRequest auboTrajectoryRequest = GameObject.Find("aubo_i5_publish").GetComponent<AuboTrajectoryRequest>();
         // 更新末端偏移
-        try 
+        try
         {
             float offset = float.Parse(input_toolEndPoint_offset.text.Trim());
             auboTrajectoryRequest.ToolEndSettingOffset(offset);
         }
-        catch (Exception e) 
+        catch (Exception e)
         {
             Debug.Log("【RobotPointPlan】设置偏移失败, ex:" + e.Message);
             auboTrajectoryRequest.ToolEndSettingOffset(0.1f);
@@ -502,7 +510,7 @@ public class DataCommon : MonoBehaviour
         // 判断当前模式是否是手动拖拽示教模式
         AuboMaunalOperatePlan auboMaunalOperatePlan = GameObject.Find("TeachingOperate").GetComponent<AuboMaunalOperatePlan>();
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
-        if (auboMaunalOperatePlan.positon.Count > 0 && auboMaunalOperatePlan.orientation.Count > 0) 
+        if (auboMaunalOperatePlan.positon.Count > 0 && auboMaunalOperatePlan.orientation.Count > 0)
         {
             auboMaunalOperatePlan.GetPointPositonAndOrientation(out List<double[]> position, out List<Quaternion<FLU>> orientation);
             List<List<double[]>> request = new List<List<double[]>> {
@@ -587,39 +595,39 @@ public class DataCommon : MonoBehaviour
 
     /**********************************************Socket相关事件******************************************/
     void SocketConnect() {
-/*        UdpSocketClient udpSocket = GameObject.Find("TeachingOperate").GetComponent<UdpSocketClient>();
+        /*        UdpSocketClient udpSocket = GameObject.Find("TeachingOperate").GetComponent<UdpSocketClient>();
 
-        if (udpSocket.isConnect)
-        {
-            udpSocket.closeUdp();
-            udpSocket.ip = input_socket_ip.text;
-            udpSocket.port = int.Parse(input_socket_host.text);
-            udpSocket.connectUdp();
-        }
-        else
-        {
-            udpSocket.ip = input_socket_ip.text;
-            udpSocket.port = int.Parse(input_socket_host.text);
-            udpSocket.connectUdp();
-        }*/
+                if (udpSocket.isConnect)
+                {
+                    udpSocket.closeUdp();
+                    udpSocket.ip = input_socket_ip.text;
+                    udpSocket.port = int.Parse(input_socket_host.text);
+                    udpSocket.connectUdp();
+                }
+                else
+                {
+                    udpSocket.ip = input_socket_ip.text;
+                    udpSocket.port = int.Parse(input_socket_host.text);
+                    udpSocket.connectUdp();
+                }*/
     }
 
     void SocketMapConnect() {
-/*        UdpSocketClient udpSocket = GameObject.Find("RawImageNavigationMap").GetComponent<UdpSocketClient>();
+        /*        UdpSocketClient udpSocket = GameObject.Find("RawImageNavigationMap").GetComponent<UdpSocketClient>();
 
-        if (udpSocket.isConnect)
-        {
-            udpSocket.closeUdp();
-            udpSocket.ip = input_socket_ip2.text;
-            udpSocket.port = int.Parse(input_socket_host2.text);
-            udpSocket.connectUdp();
-        }
-        else
-        {
-            udpSocket.ip = input_socket_ip2.text;
-            udpSocket.port = int.Parse(input_socket_host2.text);
-            udpSocket.connectUdp();
-        }*/
+                if (udpSocket.isConnect)
+                {
+                    udpSocket.closeUdp();
+                    udpSocket.ip = input_socket_ip2.text;
+                    udpSocket.port = int.Parse(input_socket_host2.text);
+                    udpSocket.connectUdp();
+                }
+                else
+                {
+                    udpSocket.ip = input_socket_ip2.text;
+                    udpSocket.port = int.Parse(input_socket_host2.text);
+                    udpSocket.connectUdp();
+                }*/
     }
 
     /************************************************PGM相关事件********************************************/
@@ -755,7 +763,7 @@ public class DataCommon : MonoBehaviour
         }
     }
 
-    void AuboJointHome() {
+    public void AuboJointHome() {
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         auboControl.AuboToHome();
     }
@@ -772,7 +780,7 @@ public class DataCommon : MonoBehaviour
 
             double[] virtual_joints = auboControl.m_VirtualJointsState;
             double joint_1 = virtual_joints[0];
-            if(!string.IsNullOrEmpty(input_aubo_joint_1_angle.text))
+            if (!string.IsNullOrEmpty(input_aubo_joint_1_angle.text))
                 joint_1 = double.Parse(input_aubo_joint_1_angle.text) * Mathf.Deg2Rad;
 
             double joint_2 = virtual_joints[1];
@@ -798,7 +806,7 @@ public class DataCommon : MonoBehaviour
             double[] joints = new double[] { joint_1, joint_2, joint_3, joint_4, joint_5, joint_6 };
             auboControl.SycRequest(joints, new PoseMsg(), true);
         }
-        else 
+        else
         {
             /*            if (string.IsNullOrEmpty(input_aubo_endPoint_x.text) ||
                             string.IsNullOrEmpty(input_aubo_endPoint_y.text) ||
@@ -842,7 +850,7 @@ public class DataCommon : MonoBehaviour
         }
     }
 
-    void AuboSettingSyncR2V() 
+    void AuboSettingSyncR2V()
     {
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         double[] realjoints = auboControl.m_RealJointsState;
@@ -850,7 +858,7 @@ public class DataCommon : MonoBehaviour
     }
 
     /**********************************************高德地图相关事件******************************************/
-    void GaodeRefresh() 
+    void GaodeRefresh()
     {
         string longitude = input_gaode_longitude.text;
         string latitude = input_gaode_latitude.text;
@@ -861,13 +869,13 @@ public class DataCommon : MonoBehaviour
     }
 
     /**********************************************急停相关事件******************************************/
-    void RobotStop()
+    public void RobotStop()
     {
         isBtnRobotStopDown = !isBtnRobotStopDown | isBtnEverythingStopDown;
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         if (isBtnRobotStopDown)
         {
-            btn_robot_stop.image.color = StopDownColor;            
+            btn_robot_stop.image.color = StopDownColor;
             auboControl.ArmEmergencyAction(true);
         }
         else
@@ -878,7 +886,7 @@ public class DataCommon : MonoBehaviour
 
     }
 
-    void CarStop()
+    public void CarStop()
     {
         isBtnCarStopDown = !isBtnCarStopDown | isBtnEverythingStopDown;
         if (isBtnCarStopDown)
@@ -893,8 +901,8 @@ public class DataCommon : MonoBehaviour
         }
     }
 
-    void EveryThingStop()
-    { 
+    public void EveryThingStop()
+    {
         isBtnEverythingStopDown = !isBtnEverythingStopDown;
 
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
@@ -955,5 +963,11 @@ public class DataCommon : MonoBehaviour
     {
         SerialPortControl serialPortControl = GameObject.Find("ControlBoxControl").GetComponent<SerialPortControl>();
         serialPortControl.CloseSerialPort();
+    }
+
+    public void ControlBoxDataUpdate(ControlBoxDTO controlBoxDTO)
+    {
+        input_aubo_speed.text = controlBoxDTO.robotArmSpeed.ToString("F2");
+        input_carSpeedSetting.text = controlBoxDTO.carMoveSpeed.ToString("F2");
     }
 }

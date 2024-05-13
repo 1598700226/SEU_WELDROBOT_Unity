@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using UnityEngine;
 
 
@@ -9,7 +10,7 @@ public class EyeOnHandCalibration: MonoBehaviour
 
     private void Start()
     {
-
+        Debug.Log(Path.Combine(Application.persistentDataPath, saveFileName));
     }
 
     public static void SaveJsonData(EyeOnHandCalibrationData eyeOnHandCalibrationData)
