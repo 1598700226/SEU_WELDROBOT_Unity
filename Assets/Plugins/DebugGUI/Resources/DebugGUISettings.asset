@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp-firstpass::DebugGUI/Settings
   enableGraphs: 1
   enableLogs: 1
-  LogsPosition: {x: 600, y: 800}
+  LogsPosition: {x: 600, y: 600}
   backgroundColor: {r: 0, g: 0, b: 0, a: 0.7}
   scrubberColor: {r: 1, g: 1, b: 0, a: 0.7}
   graphWidth: 800
   graphHeight: 300
-  temporaryLogLifetime: 5
+  temporaryLogLifetime: 8

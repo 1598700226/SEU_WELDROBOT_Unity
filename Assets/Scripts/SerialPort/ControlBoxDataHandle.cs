@@ -9,7 +9,8 @@ using UnityEngine.UIElements;
 public class ControlBoxDataHandle : MonoBehaviour
 {
     public TMP_Text receiveTextShow;
-
+    [Header("左摇杆位移距离参数")]
+    public float positonDisPerFrame = 0.1f;
 
     /************接收数据格式**********/
     SerialPortControl serialPortControl;
@@ -152,40 +153,44 @@ public class ControlBoxDataHandle : MonoBehaviour
         DataCommon dataCommon = GameObject.Find("DataManager").GetComponent<DataCommon>();
         UnityPublish_MoveCommand unityPublish_MoveCommand = GameObject.Find("RosCarMove").GetComponent<UnityPublish_MoveCommand>();
         // 按钮
-        // 机械臂虚拟归位
+        #region 机械臂虚拟归位
         if (buttonData[6] != oldButtonData[6])
         {
             DebugGUI.LogString($"【控制箱】虚拟机械臂归位 btn_6:{buttonData[6]}");
             dataCommon.AuboJointHome();
         }
-        // 机械臂急停
+        #endregion
+        #region  机械臂急停
         if (buttonData[15] != oldButtonData[15])
         {
             DebugGUI.LogString($"【控制箱】机械臂急停 btn_15:{buttonData[15]}");
             dataCommon.RobotStop();
         }
-        // 机器人急停
+        #endregion
+        #region 机器人急停
         if (buttonData[16] != oldButtonData[16])
         {
             DebugGUI.LogString($"【控制箱】机器人急停 btn_16:{buttonData[16]}");
             dataCommon.CarStop();
         }
-
+        #endregion
         // AD
-        // 行驶速度
+        #region 行驶速度
         if (adData[6] != oldADData[6])
         {
             float carSpeed = (adData[6] - 0.0f) / 4096f * (unityPublish_MoveCommand.max_speed - unityPublish_MoveCommand.min_speed) + unityPublish_MoveCommand.min_speed;
             unityPublish_MoveCommand.SetSpeed(carSpeed);
             dataCommon.input_carSpeedSetting.text = carSpeed.ToString("F2");
         }
-        // 机械臂速度
+        #endregion
+        #region 机械臂速度
         if (adData[7] != oldADData[7])
         {
             float auboSpeed = (adData[7] - 0.0f) / 4096f * 0.1f + 0.05f;
             dataCommon.input_aubo_speed.text = auboSpeed.ToString("F2");
         }
-        // 右摇杆控制移动
+        #endregion
+        #region 右摇杆控制车移动
         // 前进
         if (adData[4] < 1200)
         {
@@ -208,5 +213,35 @@ public class ControlBoxDataHandle : MonoBehaviour
             DebugGUI.LogString($"【控制箱】右摇杆控制<右转> ad_5:{adData[5]}");
             unityPublish_MoveCommand.SendMoveCommandtoTopic(0, 0, 0, -1);
         }
+        #endregion
+
+        #region 左摇杆控制机械臂移动
+        // 获取速度
+        float armSpeed = float.Parse(dataCommon.input_aubo_speed.text);
+        Vector3 pos_incre = Vector3.zero;
+        // 前进z front+ back-
+        if (adData[2] < 1200)
+        {
+            DebugGUI.LogString($"【控制箱】左摇杆控制<前进> ad_2:{adData[2]}");
+            pos_incre.z += armSpeed * positonDisPerFrame;
+        }
+        else if (adData[2] > 2300)
+        {
+            DebugGUI.LogString($"【控制箱】左摇杆控制<后退> ad_2:{adData[2]}");
+            pos_incre.z -= armSpeed * positonDisPerFrame;
+        }
+        // 水平x left- right+
+        if (adData[3] < 1200)
+        {
+            DebugGUI.LogString($"【控制箱】左摇杆控制<水平左> ad_3:{adData[3]}");
+            pos_incre.x -= armSpeed * positonDisPerFrame;
+        }
+        else if (adData[3] > 2300)
+        {
+            DebugGUI.LogString($"【控制箱】左摇杆控制<水平右> ad_3:{adData[3]}");
+            pos_incre.x += armSpeed * positonDisPerFrame;
+        }
+        #endregion
+
     }
 }
