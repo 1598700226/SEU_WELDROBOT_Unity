@@ -13,7 +13,7 @@ namespace RosMessageTypes.PlcCommunicate
         public const string k_RosMessageName = "plc_communicate/WritePlcData";
         public override string RosMessageName => k_RosMessageName;
 
-        public sbyte mode;
+        public int mode;
         public PlcWriteDataMsg write_data;
 
         public WritePlcDataRequest()
@@ -22,7 +22,7 @@ namespace RosMessageTypes.PlcCommunicate
             this.write_data = new PlcWriteDataMsg();
         }
 
-        public WritePlcDataRequest(sbyte mode, PlcWriteDataMsg write_data)
+        public WritePlcDataRequest(int mode, PlcWriteDataMsg write_data)
         {
             this.mode = mode;
             this.write_data = write_data;

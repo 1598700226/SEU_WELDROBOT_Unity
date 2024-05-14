@@ -14,7 +14,7 @@ namespace RosMessageTypes.PlcCommunicate
         public override string RosMessageName => k_RosMessageName;
 
         public bool success;
-        public sbyte error_mode;
+        public int error_mode;
 
         public WritePlcDataResponse()
         {
@@ -22,7 +22,7 @@ namespace RosMessageTypes.PlcCommunicate
             this.error_mode = 0;
         }
 
-        public WritePlcDataResponse(bool success, sbyte error_mode)
+        public WritePlcDataResponse(bool success, int error_mode)
         {
             this.success = success;
             this.error_mode = error_mode;

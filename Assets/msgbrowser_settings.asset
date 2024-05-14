@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c444d6f85828f1b4f9b89c7c387f9ddd, type: 3}
   m_Name: msgbrowser_settings
   m_EditorClassIdentifier: 
-  inputPath: "D:/unity3D/\u4EE3\u7801\u526F\u672C/plcmsg/plc_communicate/plc_communicate"
+  inputPath: C:/Users/user/Desktop/plc_communicate/plc_communicate
   relativeOutPath: RosMessages
