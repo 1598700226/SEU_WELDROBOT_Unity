@@ -9,8 +9,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c444d6f85828f1b4f9b89c7c387f9ddd, type: 3}
-  m_Name: msgbrowser_settings
+  m_Script: {fileID: 11500000, guid: 2d0546ab0a7d4bedb6c268df36568fe6, type: 3}
+  m_Name: Demo Modal Database
   m_EditorClassIdentifier: 
-  inputPath: "D:/unity3D/\u4EE3\u7801\u526F\u672C/plcmsg/plc_communicate/plc_communicate"
-  relativeOutPath: RosMessages
+  m_ModalData:
+  - identifier: Default
+    prefab: {fileID: 5513016382538558187, guid: 6c18aa9b053414f8c9d8f507cdc60faf,
+      type: 3}

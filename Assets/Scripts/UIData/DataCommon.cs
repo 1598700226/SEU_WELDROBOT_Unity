@@ -1,14 +1,10 @@
-using JetBrains.Annotations;
 using RosMessageTypes.Geometry;
+using RosMessageTypes.PlcCommunicate;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using TMPro;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class DataCommon : MonoBehaviour
@@ -227,6 +223,44 @@ public class DataCommon : MonoBehaviour
     public Button btn_serialport_close;
     #endregion
 
+    #region PLC控制
+    /***************************************PLC控制*************************************/
+    [Space(10)]
+    [Header("********PLC控制********")]
+    [Header("读取按钮")]
+    public Button btn_read_plc;
+    [Header("UISwitcher激光器使能")]
+    public UISwitcher.UISwitcher uISwitcherLaserEnable;
+    [Header("UISwitcher指导光使能")]
+    public UISwitcher.UISwitcher uISwitcherOpenInstruction;
+    [Header("UISwitcher激光器出光")]
+    public UISwitcher.UISwitcher uISwitcherLaserOutput;
+    [Header("UISwitcher激光器复位")]
+    public UISwitcher.UISwitcher uISwitcherLaserReset;
+    [Header("input激光器功率")]
+    public TMP_InputField input_laserPower;
+    [Header("UISwitcher气体使能")]
+    public UISwitcher.UISwitcher uISwitcherOpenGas;
+    [Header("UISwitcher送粉使能")]
+    public UISwitcher.UISwitcher uISwitcherOpenPowder;
+    [Header("UISwitcher送粉")]
+    public UISwitcher.UISwitcher uISwitcherPowdering;
+    [Header("input送粉器转速")]
+    public TMP_InputField input_powderSpeed;
+    [Header("input加工产品")]
+    public TMP_InputField input_product;
+    [Header("input加工工艺")]
+    public TMP_InputField input_technology;
+    [Header("UISwitcher脉冲信号")]
+    public UISwitcher.UISwitcher uISwitcherPLCPulse;
+    [Header("UISwitcher就绪信号")]
+    public UISwitcher.UISwitcher uISwitcherPLCReady;
+    [Header("UISwitcher自动模式")]
+    public UISwitcher.UISwitcher uISwitcherPLCAutomatic;
+    [Header("更新按钮")]
+    public Button btn_update_plc;
+    #endregion
+
     // Start is called before the first frame update
     void Start()
     {
@@ -276,6 +310,9 @@ public class DataCommon : MonoBehaviour
         btn_serialport_search.onClick.AddListener(ControlBoxSerialportSearch);
         btn_serialport_open.onClick.AddListener(ControlBoxSerialportOpen);
         btn_serialport_close.onClick.AddListener(ControlBoxSerialportClose);
+
+        btn_read_plc.onClick.AddListener(ReadPLCData);
+        btn_update_plc.onClick.AddListener(UpdatePLCData);
     }
 
     // Update is called once per frame
@@ -293,6 +330,7 @@ public class DataCommon : MonoBehaviour
         AuboJointAndPoseRefresh();
 
         // keyboard Listener
+        // 键盘按钮保存点云
         if (Input.GetKey(KeyCode.Space) && Input.GetKeyDown(KeyCode.P))
         {
             DebugGUI.Log("【keyboard Listener】保存点云数据");
@@ -965,9 +1003,91 @@ public class DataCommon : MonoBehaviour
         serialPortControl.CloseSerialPort();
     }
 
-    public void ControlBoxDataUpdate(ControlBoxDTO controlBoxDTO)
+    /**********************************************PLC系统******************************************/
+    void ReadPLCData()
     {
-        input_aubo_speed.text = controlBoxDTO.robotArmSpeed.ToString("F2");
-        input_carSpeedSetting.text = controlBoxDTO.carMoveSpeed.ToString("F2");
+        // todo
+        PlcReadDataMsg plcReadDataMsg = new PlcReadDataMsg();
+        uISwitcherLaserEnable.isOn = plcReadDataMsg.laser_enable;
+        uISwitcherOpenInstruction.isOn = plcReadDataMsg.open_instruction;
+        uISwitcherLaserOutput.isOn = plcReadDataMsg.laser_working;
+        uISwitcherLaserReset.isOn = plcReadDataMsg.plc_reset;
+        input_laserPower.text = plcReadDataMsg.current_power.ToString();
+        DebugGUI.Log($"【PLCRead Laser】使能:{plcReadDataMsg.laser_enable} 指导光:{plcReadDataMsg.open_instruction} 出光:{plcReadDataMsg.laser_working}" +
+            $"复位:{plcReadDataMsg.plc_reset} 功率:{plcReadDataMsg.current_power}");
+        Debug.Log($"【PLCRead Laser】使能:{plcReadDataMsg.laser_enable} 指导光:{plcReadDataMsg.open_instruction} 出光:{plcReadDataMsg.laser_working}" +
+            $"复位:{plcReadDataMsg.plc_reset} 功率:{plcReadDataMsg.current_power}");
+
+        uISwitcherOpenGas.isOn = plcReadDataMsg.open_gas;
+        uISwitcherOpenPowder.isOn = plcReadDataMsg.open_powder;
+        input_powderSpeed.text = plcReadDataMsg.current_speed.ToString();
+        input_product.text = plcReadDataMsg.current_product.ToString();
+        input_technology.text = plcReadDataMsg.current_technology.ToString();
+        DebugGUI.Log($"【PLCRead GasPowder】气体:{plcReadDataMsg.open_gas} 送粉:{plcReadDataMsg.open_powder} 送粉转速:{plcReadDataMsg.current_speed}" +
+            $"产品:{plcReadDataMsg.current_product} 工艺:{plcReadDataMsg.current_technology}");
+        Debug.Log($"【PLCRead GasPowder】气体:{plcReadDataMsg.open_gas} 送粉:{plcReadDataMsg.open_powder} 送粉转速:{plcReadDataMsg.current_speed}" +
+            $"产品:{plcReadDataMsg.current_product} 工艺:{plcReadDataMsg.current_technology}");
+
+        uISwitcherPLCPulse.isOn = plcReadDataMsg.plc_pulse;
+        uISwitcherPLCReady.isOn = plcReadDataMsg.plc_ready;
+        uISwitcherPLCAutomatic.isOn = plcReadDataMsg.plc_automatic;
+        DebugGUI.Log($"【PLCRead】脉冲信号:{plcReadDataMsg.plc_pulse} 就绪信号:{plcReadDataMsg.plc_ready} 自动模式:{plcReadDataMsg.plc_automatic}");
+        Debug.Log($"【PLCRead】脉冲信号:{plcReadDataMsg.plc_pulse} 就绪信号:{plcReadDataMsg.plc_ready} 自动模式:{plcReadDataMsg.plc_automatic}");
+    }
+
+    void UpdatePLCData()
+    {
+        //todo
+        PlcWriteDataMsg plcWriteDataMsg = new PlcWriteDataMsg();
+        PlcReadDataMsg plcReadDataMsg = new PlcReadDataMsg();
+
+        plcWriteDataMsg.laser_enable = uISwitcherLaserEnable.isOn;
+        plcWriteDataMsg.open_instruction = uISwitcherOpenInstruction.isOn;
+        plcWriteDataMsg.laser_output = uISwitcherLaserOutput.isOn;
+        plcWriteDataMsg.laser_reset = uISwitcherLaserReset.isOn;
+        plcWriteDataMsg.current_power = ConvertUshortByString(input_laserPower.text, plcReadDataMsg.current_power);
+        DebugGUI.Log($"【PLCWrite Laser】使能:{plcWriteDataMsg.laser_enable} 指导光:{plcWriteDataMsg.open_instruction} 出光:{plcWriteDataMsg.laser_output}" +
+            $"复位:{plcWriteDataMsg.laser_reset} 功率:{plcWriteDataMsg.current_power}");
+        Debug.Log($"【PLCWrite Laser】使能:{plcWriteDataMsg.laser_enable} 指导光:{plcWriteDataMsg.open_instruction} 出光:{plcWriteDataMsg.laser_output}" +
+            $"复位:{plcWriteDataMsg.laser_reset} 功率:{plcWriteDataMsg.current_power}");
+
+        plcWriteDataMsg.open_gas = uISwitcherOpenGas.isOn;
+        plcWriteDataMsg.open_powder = uISwitcherOpenPowder.isOn;
+        plcWriteDataMsg.powdering = uISwitcherPowdering.isOn;
+        plcWriteDataMsg.current_speed = ConvertUshortByString(input_powderSpeed.text, plcReadDataMsg.current_speed);
+        plcWriteDataMsg.current_product = ConvertUshortByString(input_product.text, plcReadDataMsg.current_product);
+        plcWriteDataMsg.current_technology = ConvertUshortByString(input_technology.text, plcReadDataMsg.current_technology);
+        DebugGUI.Log($"【PLCWrite GasPowder】气体:{plcWriteDataMsg.open_gas} 送粉使能:{plcWriteDataMsg.open_powder} 送粉:{plcWriteDataMsg.powdering}" +
+            $"送粉转速:{plcWriteDataMsg.current_speed} 产品:{plcWriteDataMsg.current_product} 工艺:{plcWriteDataMsg.current_technology}");
+        Debug.Log($"【PLCWrite GasPowder】气体:{plcWriteDataMsg.open_gas} 送粉使能:{plcWriteDataMsg.open_powder} 送粉:{plcWriteDataMsg.powdering}" +
+            $"送粉转速:{plcWriteDataMsg.current_speed} 产品:{plcWriteDataMsg.current_product} 工艺:{plcWriteDataMsg.current_technology}");
+
+        plcWriteDataMsg.plc_pulse = uISwitcherPLCPulse.isOn;
+        plcWriteDataMsg.plc_ready = uISwitcherPLCReady.isOn;
+        plcWriteDataMsg.plc_automatic = uISwitcherPLCAutomatic.isOn;
+        DebugGUI.Log($"【PLCWrite】脉冲信号:{plcWriteDataMsg.plc_pulse} 就绪信号:{plcWriteDataMsg.plc_ready} 自动模式:{plcWriteDataMsg.plc_automatic}");
+        Debug.Log($"【PLCWrite】脉冲信号:{plcWriteDataMsg.plc_pulse} 就绪信号:{plcWriteDataMsg.plc_ready} 自动模式:{plcWriteDataMsg.plc_automatic}");
+    }
+
+    ushort ConvertUshortByString(string numberStr, ushort oldData)
+    {
+        if (string.IsNullOrEmpty(numberStr))
+        {
+            Debug.Log($"【convertUshortByString error】传入数据为空;oldData:{oldData}");
+            DebugGUI.Log($"【convertUshortByString error】传入数据为空;oldData:{oldData}");
+            return oldData;
+        }
+
+        try
+        {
+            ushort number = UInt16.Parse(numberStr);
+            return number;
+        }
+        catch (Exception)
+        {
+            Debug.Log($"【convertUshortByString error】numberStr:{numberStr} 转换失败;oldData:{oldData}");
+            DebugGUI.Log($"【convertUshortByString error】numberStr:{numberStr} 转换失败;oldData:{oldData}");
+            return oldData;
+        }
     }
 }

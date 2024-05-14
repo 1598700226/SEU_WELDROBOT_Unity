@@ -70,6 +70,8 @@ public class PanelSelect : MonoBehaviour
     void FoldNowPanel() 
     {
         panels[index].SetActive(!panels[index].activeSelf);
+        GameObject laserPanal = GameObject.Find("LaserPanel");
+        laserPanal.SetActive(!panels[index].activeSelf);
     }
 
     void CloseApplication()
