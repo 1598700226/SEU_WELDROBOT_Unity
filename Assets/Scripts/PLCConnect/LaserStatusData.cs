@@ -53,27 +53,27 @@ public class LaserStatusData : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        // todo
-        PlcReadDataMsg plcReadDataMsg = new PlcReadDataMsg();
-        BtnStatusImgUpdate(btnLaserEnable, plcReadDataMsg.laser_enable);
-        BtnStatusImgUpdate(btnOpenInstruction, plcReadDataMsg.open_instruction);
-        BtnStatusImgUpdate(btnLaserOutput, plcReadDataMsg.laser_working);
-        BtnStatusImgUpdate(btnLaserError, plcReadDataMsg.laser_error);
-        BtnStatusImgUpdate(btnLaserReset, plcReadDataMsg.plc_reset);
-        txtLaserPower.text = plcReadDataMsg.current_power.ToString();
+        PlcConnect plcConnect = GameObject.Find("PlcCommunication").GetComponent<PlcConnect>();
 
-        BtnStatusImgUpdate(btnOpenGas, plcReadDataMsg.open_gas);
-        BtnStatusImgUpdate(btnOpenPowder, plcReadDataMsg.open_powder);
-        txtPowderSpeed.text = plcReadDataMsg.current_speed.ToString();
-        txtProduct.text = plcReadDataMsg.current_product.ToString();
-        txtTechnology.text = plcReadDataMsg.current_technology.ToString();
+        BtnStatusImgUpdate(btnLaserEnable, plcConnect.read_laser_enable);
+        BtnStatusImgUpdate(btnOpenInstruction, plcConnect.read_open_instruction);
+        BtnStatusImgUpdate(btnLaserOutput, plcConnect.read_laser_working);
+        BtnStatusImgUpdate(btnLaserError, plcConnect.read_laser_error);
+        BtnStatusImgUpdate(btnLaserReset, plcConnect.read_plc_reset);
+        txtLaserPower.text = plcConnect.read_current_power.ToString();
 
-        BtnStatusImgUpdate(btnPLCPulse, plcReadDataMsg.plc_pulse);
-        BtnStatusImgUpdate(btnPLCReady, plcReadDataMsg.plc_ready);
-        BtnStatusImgUpdate(btnPLCAutomatic, plcReadDataMsg.plc_automatic);
-        BtnStatusImgUpdate(btnPLCManual, plcReadDataMsg.plc_manual);
-        txtTemperature.text = plcReadDataMsg.env_temp.ToString();
-        txtHumidity.text = plcReadDataMsg.env_humi.ToString();
+        BtnStatusImgUpdate(btnOpenGas, plcConnect.read_open_gas);
+        BtnStatusImgUpdate(btnOpenPowder, plcConnect.read_open_powder);
+        txtPowderSpeed.text = plcConnect.read_current_speed.ToString();
+        txtProduct.text = plcConnect.read_current_product.ToString();
+        txtTechnology.text = plcConnect.read_current_technology.ToString();
+
+        BtnStatusImgUpdate(btnPLCPulse, plcConnect.read_plc_pulse);
+        BtnStatusImgUpdate(btnPLCReady, plcConnect.read_plc_ready);
+        BtnStatusImgUpdate(btnPLCAutomatic, plcConnect.read_plc_automatic);
+        BtnStatusImgUpdate(btnPLCManual, plcConnect.read_plc_manual);
+        txtTemperature.text = plcConnect.read_env_temp.ToString();
+        txtHumidity.text = plcConnect.read_env_humi.ToString();
     }
 
     private void BtnStatusImgUpdate(Button button, bool isOpen)

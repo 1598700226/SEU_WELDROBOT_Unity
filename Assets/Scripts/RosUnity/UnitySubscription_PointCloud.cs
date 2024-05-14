@@ -276,7 +276,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                     System.Drawing.PointF[,] corners = GetCorners(Colors, Image_Width, Image_Height);
                     if (corners == null)
                     {
-                        Debug.Log("未检测到棋盘格标定板角点！");
+                        Debug.LogString("未检测到棋盘格标定板角点！");
                         IsCalibration = false;
                         IsBuliding = false;
                         return;
@@ -289,9 +289,9 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                     }
                     Matrix4x4 matrix4x4_endpoint2rosbase = GetMatrixEndPoint2RosBaseFromTF();
                     matrix4x4_camera2endPoint = matrix4x4_endpoint2rosbase.inverse * matrix4x4_Ros2Unity.inverse * matrix4x4_camera2unity;
-                    Debug.Log($"【相机标定CE】camera2endPoint: \n{matrix4x4_camera2endPoint}");
-                    Debug.Log($"【相机标定TF】matrix4x4_endpoint2rosbase: \n{matrix4x4_endpoint2rosbase}");
-                    Debug.Log($"【相机标定TF】matrix4x4_camera2endPoint: \n " +
+                    Debug.LogString($"【相机标定CE】camera2endPoint: \n{matrix4x4_camera2endPoint}");
+                    Debug.LogString($"【相机标定TF】matrix4x4_endpoint2rosbase: \n{matrix4x4_endpoint2rosbase}");
+                    Debug.LogString($"【相机标定TF】matrix4x4_camera2endPoint: \n " +
                         $"平移:\n {ExtractPositionFromMatrix(matrix4x4_camera2endPoint)}" +
                         $"旋转:\n {ExtractRotationFromMatrix(matrix4x4_camera2endPoint)}");
                     IsCalibration = false;
@@ -331,7 +331,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
 
             IsBuliding = false;
             Debug.Log($"【相机标定】第 {target2Camera_R.Count} 次位置");
-            DebugGUI.Log($"【相机标定】第 {target2Camera_R.Count} 次位置");
+            DebugGUI.LogString($"【相机标定】第 {target2Camera_R.Count} 次位置");
         }
 
         if (IsSavePointCloud) {
@@ -1304,13 +1304,13 @@ public class UnitySubscription_PointCloud : MonoBehaviour
         if (eyeOnHandCalibrationData != null)
         {
             Debug.Log($"【UnitySubscription_PointCloud】matrix4x4_camera2endPoint ReadJsonData \n {eyeOnHandCalibrationData}");
-            DebugGUI.Log($"【UnitySubscription_PointCloud】matrix4x4_camera2endPoint ReadJsonData \n {eyeOnHandCalibrationData}");
+            DebugGUI.LogString($"【UnitySubscription_PointCloud】matrix4x4_camera2endPoint ReadJsonData \n {eyeOnHandCalibrationData}");
             matrix4x4_camera2endPoint = eyeOnHandCalibrationData.CameraToEndPoint;
         }
         else
         {
             Debug.Log("【UnitySubscription_PointCloud】获取手眼标定数据失败，不存在标定文件");
-            DebugGUI.Log("【UnitySubscription_PointCloud】获取手眼标定数据失败，不存在标定文件");
+            DebugGUI.LogString("【UnitySubscription_PointCloud】获取手眼标定数据失败，不存在标定文件");
         }
     }
     /**********************************************************-- 点云保存相关代码 --********************************************************/
@@ -1383,7 +1383,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
 
                 // 将字符串写入文件
                 File.WriteAllText(filePath, fileContent.ToString());
-                DebugGUI.Log($"【SavePointCloud】 保存文件至:{filePath}");
+                DebugGUI.LogString($"【SavePointCloud】 保存文件至:{filePath}");
                 yield return null;
             }
             else
@@ -1414,7 +1414,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
 
                     // 将字符串写入文件
                     File.WriteAllText(filePath, fileContent.ToString());
-                    DebugGUI.Log($"【SavePointCloud】 保存文件至:{filePath}");
+                    DebugGUI.LogString($"【SavePointCloud】 保存文件至:{filePath}");
                     yield return null;
                 }
             }
@@ -1422,7 +1422,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
         else
         {
             Debug.Log($"【SavePointCloud】 文件夹 {Application.persistentDataPath} 不存在");
-            DebugGUI.Log($"【SavePointCloud】 文件夹 {Application.persistentDataPath} 不存在");
+            DebugGUI.LogString($"【SavePointCloud】 文件夹 {Application.persistentDataPath} 不存在");
             yield return null;
         }
     }

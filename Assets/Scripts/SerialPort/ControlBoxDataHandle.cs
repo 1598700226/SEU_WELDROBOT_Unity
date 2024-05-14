@@ -155,19 +155,19 @@ public class ControlBoxDataHandle : MonoBehaviour
         // 机械臂虚拟归位
         if (buttonData[6] != oldButtonData[6])
         {
-            DebugGUI.Log($"【控制箱】虚拟机械臂归位 btn_6:{buttonData[6]}");
+            DebugGUI.LogString($"【控制箱】虚拟机械臂归位 btn_6:{buttonData[6]}");
             dataCommon.AuboJointHome();
         }
         // 机械臂急停
         if (buttonData[15] != oldButtonData[15])
         {
-            DebugGUI.Log($"【控制箱】机械臂急停 btn_15:{buttonData[15]}");
+            DebugGUI.LogString($"【控制箱】机械臂急停 btn_15:{buttonData[15]}");
             dataCommon.RobotStop();
         }
         // 机器人急停
         if (buttonData[16] != oldButtonData[16])
         {
-            DebugGUI.Log($"【控制箱】机器人急停 btn_16:{buttonData[16]}");
+            DebugGUI.LogString($"【控制箱】机器人急停 btn_16:{buttonData[16]}");
             dataCommon.CarStop();
         }
 
@@ -189,23 +189,23 @@ public class ControlBoxDataHandle : MonoBehaviour
         // 前进
         if (adData[4] < 1200)
         {
-            DebugGUI.Log($"【控制箱】右摇杆控制<前进> ad_4:{adData[4]}");
+            DebugGUI.LogString($"【控制箱】右摇杆控制<前进> ad_4:{adData[4]}");
             unityPublish_MoveCommand.SendMoveCommandtoTopic(1, 0, 0, 0);
         }
         else if (adData[4] > 2300)
         {
-            DebugGUI.Log($"【控制箱】右摇杆控制<后退> ad_4:{adData[4]}");
+            DebugGUI.LogString($"【控制箱】右摇杆控制<后退> ad_4:{adData[4]}");
             unityPublish_MoveCommand.SendMoveCommandtoTopic(-1, 0, 0, 0);
         }
         // 转向
         if (adData[5] < 1200)
         {
-            DebugGUI.Log($"【控制箱】右摇杆控制<左转> ad_5:{adData[5]}");
+            DebugGUI.LogString($"【控制箱】右摇杆控制<左转> ad_5:{adData[5]}");
             unityPublish_MoveCommand.SendMoveCommandtoTopic(0, 0, 0, 1);
         }
         else if (adData[5] > 2300)
         {
-            DebugGUI.Log($"【控制箱】右摇杆控制<右转> ad_5:{adData[5]}");
+            DebugGUI.LogString($"【控制箱】右摇杆控制<右转> ad_5:{adData[5]}");
             unityPublish_MoveCommand.SendMoveCommandtoTopic(0, 0, 0, -1);
         }
     }

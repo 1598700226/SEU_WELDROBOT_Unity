@@ -10,14 +10,14 @@ public class DebugLogGUI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.O))
+        if (Input.GetKey(KeyCode.Space) && Input.GetKeyDown(KeyCode.O))
         {
-            DebugGUI.Log("【keyboard Listener】打开DebugGUI显示");
+            DebugGUI.LogString("【keyboard Listener】打开DebugGUI显示");
             isShowGUI = true;
         }
-        if (Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.C))
+        if (Input.GetKey(KeyCode.Space) && Input.GetKeyDown(KeyCode.C))
         {
-            DebugGUI.Log("【keyboard Listener】关闭DebugGUI显示");
+            DebugGUI.LogString("【keyboard Listener】关闭DebugGUI显示");
             isShowGUI = false;
             DebugGUI.ClearPersistent();
         }

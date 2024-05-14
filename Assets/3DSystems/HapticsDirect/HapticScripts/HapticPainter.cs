@@ -91,7 +91,7 @@ public class HapticPainter : MonoBehaviour
             //Debug.DrawRay(hapticPlugin.VisualizationMesh.transform.position - collision.contacts[0].normal, collision.contacts[0].normal / 10, Color.yellow, 2, false);
             if (Physics.Raycast(ray, out hit))
             {
-                //Debug.Log(hit.textureCoord);
+                //Debug.LogString(hit.textureCoord);
                 Renderer rend = hit.transform.GetComponent<Renderer>();
                 MeshCollider meshCollider = hit.collider as MeshCollider;
 

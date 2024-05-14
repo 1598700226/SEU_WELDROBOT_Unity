@@ -64,7 +64,7 @@ namespace DataStructures.ViliWonka.Tests {
 
         void TestSet() {
 
-            // Debug.Log(testingArray.Length + " random points for each test:");
+            // Debug.LogString(testingArray.Length + " random points for each test:");
 
             TestConstruction(5, "Uniform", RandomizeUniform);
             TestConstruction(5, "Triangular", RandomizeUniform);

@@ -914,7 +914,7 @@ public class HapticPlugin : MonoBehaviour
         bool[] inRange = { false, false, false, false, false, false };
         
 
-        //Debug.Log(AngleToNeg(this.transform.localRotation.eulerAngles.x));
+        //Debug.LogString(AngleToNeg(this.transform.localRotation.eulerAngles.x));
         if (AngleToNeg(this.transform.localRotation.eulerAngles.x) > Min_RNav.x)
         {
             inRange[0] = true;
@@ -1577,7 +1577,7 @@ public class HapticPlugin : MonoBehaviour
         Vector3 friction = new Vector3();
         getCurrentFrictionForce(DeviceIdentifier, temp_double_array);
         friction = DoubleArrayToVector3(temp_double_array);
-        //Debug.Log("Friction: " + friction.ToString("F5"));
+        //Debug.LogString("Friction: " + friction.ToString("F5"));
 
         getLocalForces(DeviceIdentifier, temp_double_array, temp_double_array2, temp_double_array3, temp_double_array4, temp_double_array5, temp_double_array6);
         stiffnessForceD = DoubleArrayToVector3(temp_double_array);
@@ -1613,7 +1613,7 @@ public class HapticPlugin : MonoBehaviour
         velocity = new_direction;
         distance = deltaPos.magnitude;
 
-        //Debug.Log("Deltaposition:" + deltaPos.magnitude);
+        //Debug.LogString("Deltaposition:" + deltaPos.magnitude);
         
         if (transformDirect==true)
         {
@@ -1632,7 +1632,7 @@ public class HapticPlugin : MonoBehaviour
                 //rBody.drag = 10.0f;
                 rBody.drag = 1;
                 rBody.AddForce(deltaPos * magnitude, ForceMode.VelocityChange);
-                //Debug.Log("DeltaPos:" + deltaPos.x);
+                //Debug.LogString("DeltaPos:" + deltaPos.x);
             }
             else
             {
@@ -1691,7 +1691,7 @@ public class HapticPlugin : MonoBehaviour
         //修改
         my_Buttons = Buttons;
 
-        //Debug.Log("Button1 = " + Buttons[0] + "  " + LastButtons[0]);
+        //Debug.LogString("Button1 = " + Buttons[0] + "  " + LastButtons[0]);
 
         if (LastButtons[0] == 0 && Buttons[0] == 1)
         {
@@ -1754,20 +1754,20 @@ public class HapticPlugin : MonoBehaviour
             {
                 if (LastButtons[0] != Buttons[0])
                 {
-                    //Debug.Log("Button1 = " + Buttons[0] + "  " + LastButtons[0]);
+                    //Debug.LogString("Button1 = " + Buttons[0] + "  " + LastButtons[0]);
                     if (bButton1g == true && Buttons[0] == 1 && bIsGrabbingActive == false)
                     {
 
                         bIsGrabbing = true;
                         bIsRelease = false;
-                        //Debug.Log("Button 1 - Grabbing");
+                        //Debug.LogString("Button 1 - Grabbing");
                     }
                     if (bButton1r == true && Buttons[0] == 1 && GrabObject!=null)
                     {
 
                         bIsRelease = true;
                         bIsGrabbing = false;
-                        //Debug.Log("Button 1 - Releasing");
+                        //Debug.LogString("Button 1 - Releasing");
                     }
                 }
             }
@@ -1795,14 +1795,14 @@ public class HapticPlugin : MonoBehaviour
 
                         bIsGrabbing = true;
                         bIsRelease = false;
-                        //Debug.Log("Button 2 - Grabbing");
+                        //Debug.LogString("Button 2 - Grabbing");
                     }
                     if (bButton2r == true && Buttons[1] == 1 && GrabObject != null)
                     {
 
                         bIsRelease = true;
                         bIsGrabbing = false;
-                        //Debug.Log("Button 2 - Releasing");
+                        //Debug.LogString("Button 2 - Releasing");
                     }
                 }
             }
@@ -1813,7 +1813,7 @@ public class HapticPlugin : MonoBehaviour
     #region Collision_and_Force
     public void UpdateCollision(Collision collision, bool isCollisionStart, bool isCollision, bool isCollisionExit)
     {
-        //Debug.Log("Collision" + collision.collider.name);
+        //Debug.LogString("Collision" + collision.collider.name);
 
         float colmass = 1.0f;
 
@@ -1892,24 +1892,24 @@ public class HapticPlugin : MonoBehaviour
             Vector3 contact_normal = gameObject.transform.InverseTransformVector(collision.GetContact(0).normal);
             Vector3 contact_point = gameObject.transform.InverseTransformVector(collision.GetContact(0).point);
 
-            //Debug.Log("VPos: " + v_stylus_pos.ToString("F5"));
-            //Debug.Log("RRPos: " + rr_stylus_pos.ToString("F5"));
-            //Debug.Log("RPos: " + r_stylus_pos.ToString("F5"));
+            //Debug.LogString("VPos: " + v_stylus_pos.ToString("F5"));
+            //Debug.LogString("RRPos: " + rr_stylus_pos.ToString("F5"));
+            //Debug.LogString("RPos: " + r_stylus_pos.ToString("F5"));
             
-            //Debug.Log("CN: " + contact_normal.ToString("F5"));
-            //Debug.Log("CP: " + contact_point.ToString("F5"));
+            //Debug.LogString("CN: " + contact_normal.ToString("F5"));
+            //Debug.LogString("CP: " + contact_point.ToString("F5"));
 
             //Vector3 delta_pos = contact_point + (r_stylus_pos - v_stylus_pos);
 
-            //Debug.Log("DPos: " + delta_pos.ToString("F5"));
+            //Debug.LogString("DPos: " + delta_pos.ToString("F5"));
 
             //float pos_d = (Vector3.Dot(r_stylus_pos,contact_normal) - Vector3.Dot(contact_point,contact_normal)) / contact_normal.magnitude;
-            //Debug.Log("POS_D: " + pos_d.ToString("F5"));
+            //Debug.LogString("POS_D: " + pos_d.ToString("F5"));
 
             //Vector3 cpos = delta_pos;
 
             //Vector3 epos = cpos - Vector3.Scale((cpos - Vector3.Scale(contact_point, contact_normal)), contact_normal);
-            //Debug.Log("EPOS: " + epos.ToString("F5"));
+            //Debug.LogString("EPOS: " + epos.ToString("F5"));
 
             UpdateForceOnCollision(collision);
             
@@ -1985,7 +1985,7 @@ public class HapticPlugin : MonoBehaviour
             }
 
 
-            //Debug.Log("contactCount: " + collision.contactCount);
+            //Debug.LogString("contactCount: " + collision.contactCount);
 
             if (CheckImpulseDirection(collision))
             {
@@ -2059,7 +2059,7 @@ public class HapticPlugin : MonoBehaviour
                     contInfo.RigBodyMass = collision.collider.GetComponent<Rigidbody>().mass;
                     //contInfo.ColImpulse = collision.impulse.magnitude * contInfo.Normal;
                     contInfo.ColImpulse = collision.impulse * impCorrection;
-                    //Debug.Log("Collision Impulse:" + contInfo.ColImpulse);
+                    //Debug.LogString("Collision Impulse:" + contInfo.ColImpulse);
                     contInfo.PhxDeltaTime = Time.fixedDeltaTime;
                     contInfo.ImpulseDepth = hapMat.hImpulseD;
                 }
@@ -2135,14 +2135,14 @@ public class HapticPlugin : MonoBehaviour
             counter++;
             
         }
-        //Debug.Log("Number of Collision Points:" + counter);
+        //Debug.LogString("Number of Collision Points:" + counter);
         updateContactPointInfo(DeviceIdentifier);
         //Vector3 anPos = gameObject.transform.InverseTransformPoint(CollisionMesh.transform.position);
         Vector3 anPos = this.transform.InverseTransformPoint(VisualizationMesh.transform.position) / ScaleFactor;
         setAnchorPosition(DeviceIdentifier, Vector3ToDoubleArray(anPos));
         //setAnchorPosition(DeviceIdentifier, Vector3ToDoubleArray(CurrentPosition));
-        //Debug.Log("AnchorPos:" + anPos);
-        //Debug.Log("Velocity:" + CollisionMesh.GetComponent<Rigidbody>().velocity);
+        //Debug.LogString("AnchorPos:" + anPos);
+        //Debug.LogString("Velocity:" + CollisionMesh.GetComponent<Rigidbody>().velocity);
     }
     #endregion
 
@@ -2176,7 +2176,7 @@ public class HapticPlugin : MonoBehaviour
 
         while (grabObjectbody == null)
         {
-            //Debug.logger.Log("Grabbing : " + grabbing.name + " Has no body. Finding Parent. ");
+            //Debug.logger.LogString("Grabbing : " + grabbing.name + " Has no body. Finding Parent. ");
             if (grabObjectbody.transform.parent == null)
             {
                 grabObjectbody = null;
@@ -2354,7 +2354,7 @@ public class HapticPlugin : MonoBehaviour
         }
                         
         float angle = Vector3.Angle(ContPointSum, collision.impulse);
-        //Debug.Log("Normal / Impulse Angle: " + angle);
+        //Debug.LogString("Normal / Impulse Angle: " + angle);
 
         if (angle > 150.0f)
         {

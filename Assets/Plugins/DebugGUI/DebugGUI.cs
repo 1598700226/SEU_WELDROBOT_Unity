@@ -152,6 +152,18 @@ public partial class DebugGUI : MonoBehaviour
             Instance.logWindow.Log(message.ToString());
     }
 
+    public static void LogString(string message)
+    {
+        if (Settings.enableLogs)
+        {
+            string[] messages = message.Split('\n');
+            foreach (string s in messages)
+            {
+                Instance.logWindow.Log(s.ToString());
+            }
+        }
+    }
+
     #endregion
 
     /// <summary>
@@ -189,7 +201,7 @@ public partial class DebugGUI : MonoBehaviour
         }
         if (Settings.enableLogs)
         {
-            logWindow = new GameObject("Log").AddComponent<LogWindow>();
+            logWindow = new GameObject("LogString").AddComponent<LogWindow>();
             logWindow.Init();
             logWindow.transform.parent = transform;
         }

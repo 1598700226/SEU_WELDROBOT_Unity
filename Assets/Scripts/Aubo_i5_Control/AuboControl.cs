@@ -266,8 +266,8 @@ public class AuboControl : MonoBehaviour
         // ------------------------------------
         double joint1 = m_RealJointsState[0];
         var pose_x = m_RealPose.position.x;
-        //Debug.Log(joint1.ToString());
-        //Debug.Log(pose_x);
+        //Debug.LogString(joint1.ToString());
+        //Debug.LogString(pose_x);
         // -----------------------------------
         // -----------------------------------
     }
@@ -305,6 +305,8 @@ public class AuboControl : MonoBehaviour
         }
         Debug.Log($"【SycRequest】joints: {joints[0]}, {joints[1]}, {joints[2]}," +
     $"{joints[3]}, {joints[4]}, {joints[5]}");
+        DebugGUI.Log($"【SycRequest】joints: {joints[0]}, {joints[1]}, {joints[2]}," +
+    $"{joints[3]}, {joints[4]}, {joints[5]}");
         m_Ros.SendServiceMessage<AuboSycServiceResponse>(m_SycServiceName, request, SycResponse);
 
     }
@@ -315,11 +317,14 @@ public class AuboControl : MonoBehaviour
         {
             Debug.Log($"response: {response.aim_joints[0]}, {response.aim_joints[1]}, {response.aim_joints[2]}," +
                 $"{response.aim_joints[3]}, {response.aim_joints[4]}, {response.aim_joints[5]}");
+            DebugGUI.Log($"response: {response.aim_joints[0]}, {response.aim_joints[1]}, {response.aim_joints[2]}," +
+    $"{response.aim_joints[3]}, {response.aim_joints[4]}, {response.aim_joints[5]}");
             SetJointState(response.aim_joints);
         }
         else
         {
             Debug.LogError("Synch Failed!");
+            DebugGUI.Log("Synch Failed!");
         }
 
 

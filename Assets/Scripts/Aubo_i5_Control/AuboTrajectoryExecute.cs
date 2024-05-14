@@ -207,7 +207,7 @@ public class AuboTrajectoryExecute : MonoBehaviour
                 /*
                 if (trajectoryIndex == (int)Trajectory.Execute)
                 {
-                    Debug.Log("Welding end, Turn off the laser!")
+                    Debug.LogString("Welding end, Turn off the laser!")
                 }
                 */
 

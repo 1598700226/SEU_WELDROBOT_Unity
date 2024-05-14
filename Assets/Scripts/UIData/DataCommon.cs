@@ -259,6 +259,18 @@ public class DataCommon : MonoBehaviour
     public UISwitcher.UISwitcher uISwitcherPLCAutomatic;
     [Header("更新按钮")]
     public Button btn_update_plc;
+    [Header("打开激光器")]
+    public Button btn_open_laser;
+
+    // 大于2时：仅开启或关闭激光器  偶数：开启激光器  奇数：关闭激光器
+    // 小于等于2时 设置相应参数
+    private LaserModeChoose laserModeChoose = LaserModeChoose.Close;
+    private enum LaserModeChoose
+    {
+        Setting = 1,
+        Close = 3,
+        Open = 4,
+    }
     #endregion
 
     // Start is called before the first frame update
@@ -313,6 +325,7 @@ public class DataCommon : MonoBehaviour
 
         btn_read_plc.onClick.AddListener(ReadPLCData);
         btn_update_plc.onClick.AddListener(UpdatePLCData);
+        btn_open_laser.onClick.AddListener(OpenLaser);
     }
 
     // Update is called once per frame
@@ -333,7 +346,7 @@ public class DataCommon : MonoBehaviour
         // 键盘按钮保存点云
         if (Input.GetKey(KeyCode.Space) && Input.GetKeyDown(KeyCode.P))
         {
-            DebugGUI.Log("【keyboard Listener】保存点云数据");
+            DebugGUI.LogString("【keyboard Listener】保存点云数据");
             UnitySubscription_PointCloud unitySubscription_PointCloud = GameObject.Find("RosColorDepthData").GetComponent<UnitySubscription_PointCloud>();
             unitySubscription_PointCloud.IsSavePointCloud = true;
         }
@@ -355,6 +368,7 @@ public class DataCommon : MonoBehaviour
         } catch (Exception ex) {
 
             Debug.Log("【DataCommon】 RefreshUIData ex:" + ex.Message);
+            DebugGUI.Log("【DataCommon】 RefreshUIData ex:" + ex.Message);
         }
     }
 
@@ -568,6 +582,7 @@ public class DataCommon : MonoBehaviour
             if (points.Count == 0)
             {
                 Debug.Log("【DataCommon】发送的点数量为0");
+                DebugGUI.Log("【DataCommon】发送的点数量为0");
                 return;
             }
 
@@ -583,6 +598,7 @@ public class DataCommon : MonoBehaviour
             };
             int type = dropdown_selectRobotPlanPose.value;
             Debug.Log($"发送点的数量：{rosPosition.Count} 类型：{type}");
+            DebugGUI.Log($"发送点的数量：{rosPosition.Count} 类型：{type}");
 
             // todo 传入相对姿态
             if (type == 2)
@@ -591,6 +607,7 @@ public class DataCommon : MonoBehaviour
                 if (nors_unity == null)
                 {
                     Debug.Log("【DataCommon】 RobotPointPlan fail: 获取的法向量为null");
+                    DebugGUI.Log("【DataCommon】 RobotPointPlan fail: 获取的法向量为null");
                     return;
                 }
 
@@ -696,6 +713,7 @@ public class DataCommon : MonoBehaviour
         catch (Exception ex)
         {
             Debug.Log("【PGMUpdateSetting】速度设置失败 ex:" + ex.Message);
+            DebugGUI.Log("【PGMUpdateSetting】速度设置失败 ex:" + ex.Message);
             unityPublish_MoveCommand.SetSpeed(unityPublish_MoveCommand.min_speed);
         }
     }
@@ -994,6 +1012,7 @@ public class DataCommon : MonoBehaviour
         catch (Exception ex)
         {
             Debug.Log("【DataCommon】ControlBoxSerialportOpen error\n" + ex);
+            DebugGUI.Log("【DataCommon】ControlBoxSerialportOpen error\n" + ex);
         }
     }
 
@@ -1007,66 +1026,70 @@ public class DataCommon : MonoBehaviour
     void ReadPLCData()
     {
         // todo
-        PlcReadDataMsg plcReadDataMsg = new PlcReadDataMsg();
-        uISwitcherLaserEnable.isOn = plcReadDataMsg.laser_enable;
-        uISwitcherOpenInstruction.isOn = plcReadDataMsg.open_instruction;
-        uISwitcherLaserOutput.isOn = plcReadDataMsg.laser_working;
-        uISwitcherLaserReset.isOn = plcReadDataMsg.plc_reset;
-        input_laserPower.text = plcReadDataMsg.current_power.ToString();
-        DebugGUI.Log($"【PLCRead Laser】使能:{plcReadDataMsg.laser_enable} 指导光:{plcReadDataMsg.open_instruction} 出光:{plcReadDataMsg.laser_working}" +
-            $"复位:{plcReadDataMsg.plc_reset} 功率:{plcReadDataMsg.current_power}");
-        Debug.Log($"【PLCRead Laser】使能:{plcReadDataMsg.laser_enable} 指导光:{plcReadDataMsg.open_instruction} 出光:{plcReadDataMsg.laser_working}" +
-            $"复位:{plcReadDataMsg.plc_reset} 功率:{plcReadDataMsg.current_power}");
+        PlcConnect plcConnect = GameObject.Find("PlcCommunication").GetComponent<PlcConnect>();
 
-        uISwitcherOpenGas.isOn = plcReadDataMsg.open_gas;
-        uISwitcherOpenPowder.isOn = plcReadDataMsg.open_powder;
-        input_powderSpeed.text = plcReadDataMsg.current_speed.ToString();
-        input_product.text = plcReadDataMsg.current_product.ToString();
-        input_technology.text = plcReadDataMsg.current_technology.ToString();
-        DebugGUI.Log($"【PLCRead GasPowder】气体:{plcReadDataMsg.open_gas} 送粉:{plcReadDataMsg.open_powder} 送粉转速:{plcReadDataMsg.current_speed}" +
-            $"产品:{plcReadDataMsg.current_product} 工艺:{plcReadDataMsg.current_technology}");
-        Debug.Log($"【PLCRead GasPowder】气体:{plcReadDataMsg.open_gas} 送粉:{plcReadDataMsg.open_powder} 送粉转速:{plcReadDataMsg.current_speed}" +
-            $"产品:{plcReadDataMsg.current_product} 工艺:{plcReadDataMsg.current_technology}");
+        uISwitcherLaserEnable.isOn = plcConnect.read_laser_enable;
+        uISwitcherOpenInstruction.isOn = plcConnect.read_open_instruction;
+        uISwitcherLaserOutput.isOn = plcConnect.read_laser_working;
+        uISwitcherLaserReset.isOn = plcConnect.read_plc_reset;
+        input_laserPower.text = plcConnect.read_current_power.ToString();
+        DebugGUI.LogString(($"【PLCRead Laser】使能:{plcConnect.read_laser_enable} 指导光:{plcConnect.read_open_instruction} 出光:{plcConnect.read_laser_working}" +
+            $"复位:{plcConnect.read_plc_reset} 功率:{plcConnect.read_current_power}"));
+        Debug.Log($"【PLCRead Laser】使能:{plcConnect.read_laser_enable} 指导光:{plcConnect.read_open_instruction} 出光:{plcConnect.read_laser_working}" +
+            $"复位:{plcConnect.read_plc_reset} 功率:{plcConnect.read_current_power}");
 
-        uISwitcherPLCPulse.isOn = plcReadDataMsg.plc_pulse;
-        uISwitcherPLCReady.isOn = plcReadDataMsg.plc_ready;
-        uISwitcherPLCAutomatic.isOn = plcReadDataMsg.plc_automatic;
-        DebugGUI.Log($"【PLCRead】脉冲信号:{plcReadDataMsg.plc_pulse} 就绪信号:{plcReadDataMsg.plc_ready} 自动模式:{plcReadDataMsg.plc_automatic}");
-        Debug.Log($"【PLCRead】脉冲信号:{plcReadDataMsg.plc_pulse} 就绪信号:{plcReadDataMsg.plc_ready} 自动模式:{plcReadDataMsg.plc_automatic}");
+        uISwitcherOpenGas.isOn = plcConnect.read_open_gas;
+        uISwitcherOpenPowder.isOn = plcConnect.read_open_powder;
+        input_powderSpeed.text = plcConnect.read_current_speed.ToString();
+        input_product.text = plcConnect.read_current_product.ToString();
+        input_technology.text = plcConnect.read_current_technology.ToString();
+        DebugGUI.LogString(($"【PLCRead GasPowder】气体:{plcConnect.read_open_gas} 送粉:{plcConnect.read_open_powder} 送粉转速:{plcConnect.read_current_speed}" +
+            $"产品:{plcConnect.read_current_product} 工艺:{plcConnect.read_current_technology}"));
+        Debug.Log($"【PLCRead GasPowder】气体:{plcConnect.read_open_gas} 送粉:{plcConnect.read_open_powder} 送粉转速:{plcConnect.read_current_speed}" +
+            $"产品:{plcConnect.read_current_product} 工艺:{plcConnect.read_current_technology}");
+
+        uISwitcherPLCPulse.isOn = plcConnect.read_plc_pulse;
+        uISwitcherPLCReady.isOn = plcConnect.read_plc_ready;
+        uISwitcherPLCAutomatic.isOn = plcConnect.read_plc_automatic;
+
+        DebugGUI.LogString($"【PLCRead】脉冲信号:{plcConnect.read_plc_pulse} 就绪信号:{plcConnect.read_plc_ready} 自动模式:{plcConnect.read_plc_automatic}");
+        Debug.Log($"【PLCRead】脉冲信号:{plcConnect.read_plc_pulse} 就绪信号:{plcConnect.read_plc_ready} 自动模式:{plcConnect.read_plc_automatic}");
+
+        DebugGUI.LogString($"【PLCRead】温度:{plcConnect.read_env_temp} 湿度:{plcConnect.read_env_humi}");
+        Debug.Log($"【PLCRead】温度:{plcConnect.read_env_temp} 湿度:{plcConnect.read_env_humi}");
     }
 
     void UpdatePLCData()
     {
-        //todo
-        PlcWriteDataMsg plcWriteDataMsg = new PlcWriteDataMsg();
-        PlcReadDataMsg plcReadDataMsg = new PlcReadDataMsg();
+        PlcConnect plcConnect = GameObject.Find("PlcCommunication").GetComponent<PlcConnect>();
 
-        plcWriteDataMsg.laser_enable = uISwitcherLaserEnable.isOn;
-        plcWriteDataMsg.open_instruction = uISwitcherOpenInstruction.isOn;
-        plcWriteDataMsg.laser_output = uISwitcherLaserOutput.isOn;
-        plcWriteDataMsg.laser_reset = uISwitcherLaserReset.isOn;
-        plcWriteDataMsg.current_power = ConvertUshortByString(input_laserPower.text, plcReadDataMsg.current_power);
-        DebugGUI.Log($"【PLCWrite Laser】使能:{plcWriteDataMsg.laser_enable} 指导光:{plcWriteDataMsg.open_instruction} 出光:{plcWriteDataMsg.laser_output}" +
-            $"复位:{plcWriteDataMsg.laser_reset} 功率:{plcWriteDataMsg.current_power}");
-        Debug.Log($"【PLCWrite Laser】使能:{plcWriteDataMsg.laser_enable} 指导光:{plcWriteDataMsg.open_instruction} 出光:{plcWriteDataMsg.laser_output}" +
-            $"复位:{plcWriteDataMsg.laser_reset} 功率:{plcWriteDataMsg.current_power}");
+        plcConnect.write_laser_enable = uISwitcherLaserEnable.isOn;
+        plcConnect.write_open_instruction = uISwitcherOpenInstruction.isOn;
+        plcConnect.write_laser_output = uISwitcherLaserOutput.isOn;
+        plcConnect.write_laser_reset = uISwitcherLaserReset.isOn;
+        plcConnect.write_current_power = ConvertUshortByString(input_laserPower.text, plcConnect.read_current_power);
+        DebugGUI.LogString(($"【PLCWrite Laser】使能:{plcConnect.write_laser_enable} 指导光:{plcConnect.write_open_instruction} 出光:{plcConnect.write_laser_output}" +
+            $"复位:{plcConnect.write_laser_reset} 功率:{plcConnect.write_current_power}"));
+        Debug.Log($"【PLCWrite Laser】使能:{plcConnect.write_laser_enable} 指导光:{plcConnect.write_open_instruction} 出光:{plcConnect.write_laser_output}" +
+            $"复位:{plcConnect.write_laser_reset} 功率:{plcConnect.write_current_power}");
 
-        plcWriteDataMsg.open_gas = uISwitcherOpenGas.isOn;
-        plcWriteDataMsg.open_powder = uISwitcherOpenPowder.isOn;
-        plcWriteDataMsg.powdering = uISwitcherPowdering.isOn;
-        plcWriteDataMsg.current_speed = ConvertUshortByString(input_powderSpeed.text, plcReadDataMsg.current_speed);
-        plcWriteDataMsg.current_product = ConvertUshortByString(input_product.text, plcReadDataMsg.current_product);
-        plcWriteDataMsg.current_technology = ConvertUshortByString(input_technology.text, plcReadDataMsg.current_technology);
-        DebugGUI.Log($"【PLCWrite GasPowder】气体:{plcWriteDataMsg.open_gas} 送粉使能:{plcWriteDataMsg.open_powder} 送粉:{plcWriteDataMsg.powdering}" +
-            $"送粉转速:{plcWriteDataMsg.current_speed} 产品:{plcWriteDataMsg.current_product} 工艺:{plcWriteDataMsg.current_technology}");
-        Debug.Log($"【PLCWrite GasPowder】气体:{plcWriteDataMsg.open_gas} 送粉使能:{plcWriteDataMsg.open_powder} 送粉:{plcWriteDataMsg.powdering}" +
-            $"送粉转速:{plcWriteDataMsg.current_speed} 产品:{plcWriteDataMsg.current_product} 工艺:{plcWriteDataMsg.current_technology}");
+        plcConnect.write_open_gas = uISwitcherOpenGas.isOn;
+        plcConnect.write_open_powder = uISwitcherOpenPowder.isOn;
+        plcConnect.write_powdering = uISwitcherPowdering.isOn;
+        plcConnect.write_current_speed = ConvertUshortByString(input_powderSpeed.text, plcConnect.read_current_speed);
+        plcConnect.write_current_product = ConvertUshortByString(input_product.text, plcConnect.read_current_product);
+        plcConnect.write_current_technology = ConvertUshortByString(input_technology.text, plcConnect.read_current_technology);
+        DebugGUI.LogString(($"【PLCWrite GasPowder】气体:{plcConnect.write_open_gas} 送粉使能:{plcConnect.write_open_powder} 送粉:{plcConnect.write_powdering}" +
+            $"送粉转速:{plcConnect.write_current_speed} 产品:{plcConnect.write_current_product} 工艺:{plcConnect.write_current_technology}"));
+        Debug.Log($"【PLCWrite GasPowder】气体:{plcConnect.write_open_gas} 送粉使能:{plcConnect.write_open_powder} 送粉:{plcConnect.write_powdering}" +
+            $"送粉转速:{plcConnect.write_current_speed} 产品:{plcConnect.write_current_product} 工艺:{plcConnect.write_current_technology}");
 
-        plcWriteDataMsg.plc_pulse = uISwitcherPLCPulse.isOn;
-        plcWriteDataMsg.plc_ready = uISwitcherPLCReady.isOn;
-        plcWriteDataMsg.plc_automatic = uISwitcherPLCAutomatic.isOn;
-        DebugGUI.Log($"【PLCWrite】脉冲信号:{plcWriteDataMsg.plc_pulse} 就绪信号:{plcWriteDataMsg.plc_ready} 自动模式:{plcWriteDataMsg.plc_automatic}");
-        Debug.Log($"【PLCWrite】脉冲信号:{plcWriteDataMsg.plc_pulse} 就绪信号:{plcWriteDataMsg.plc_ready} 自动模式:{plcWriteDataMsg.plc_automatic}");
+        plcConnect.write_plc_pulse = uISwitcherPLCPulse.isOn;
+        plcConnect.write_plc_ready = uISwitcherPLCReady.isOn;
+        plcConnect.write_plc_automatic = uISwitcherPLCAutomatic.isOn;
+        plcConnect.WriteToPlcData((int)LaserModeChoose.Setting);
+        DebugGUI.LogString($"【PLCWrite】模式：{LaserModeChoose.Setting} 脉冲信号:{plcConnect.write_plc_pulse} 就绪信号:{plcConnect.write_plc_ready} 自动模式:{plcConnect.write_plc_automatic}");
+        Debug.Log($"【PLCWrite】模式：{LaserModeChoose.Setting} 脉冲信号:{plcConnect.write_plc_pulse} 就绪信号:{plcConnect.write_plc_ready} 自动模式:{plcConnect.write_plc_automatic}");
     }
 
     ushort ConvertUshortByString(string numberStr, ushort oldData)
@@ -1074,7 +1097,7 @@ public class DataCommon : MonoBehaviour
         if (string.IsNullOrEmpty(numberStr))
         {
             Debug.Log($"【convertUshortByString error】传入数据为空;oldData:{oldData}");
-            DebugGUI.Log($"【convertUshortByString error】传入数据为空;oldData:{oldData}");
+            DebugGUI.LogString($"【convertUshortByString error】传入数据为空;oldData:{oldData}");
             return oldData;
         }
 
@@ -1086,8 +1109,28 @@ public class DataCommon : MonoBehaviour
         catch (Exception)
         {
             Debug.Log($"【convertUshortByString error】numberStr:{numberStr} 转换失败;oldData:{oldData}");
-            DebugGUI.Log($"【convertUshortByString error】numberStr:{numberStr} 转换失败;oldData:{oldData}");
+            DebugGUI.LogString($"【convertUshortByString error】numberStr:{numberStr} 转换失败;oldData:{oldData}");
             return oldData;
         }
+    }
+
+    void OpenLaser()
+    {
+        PlcConnect plcConnect = GameObject.Find("PlcCommunication").GetComponent<PlcConnect>();
+        if (laserModeChoose.Equals(LaserModeChoose.Close))
+        {
+            laserModeChoose = LaserModeChoose.Open;
+            plcConnect.WriteToPlcData((int)laserModeChoose);
+            btn_open_laser.GetComponentInChildren<TMP_Text>().text = "关闭激光器";
+        }
+        else if (laserModeChoose.Equals(LaserModeChoose.Open))
+        {
+            laserModeChoose = LaserModeChoose.Close;
+            plcConnect.WriteToPlcData((int)laserModeChoose);
+            btn_open_laser.GetComponentInChildren<TMP_Text>().text = "打开激光器";
+        }
+
+        DebugGUI.LogString($"【PLCWrite】当前模式：{laserModeChoose}");
+        Debug.Log($"【PLCWrite】当前模式：{laserModeChoose}");
     }
 }

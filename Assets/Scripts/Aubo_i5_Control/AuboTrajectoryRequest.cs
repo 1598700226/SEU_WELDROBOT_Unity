@@ -144,6 +144,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
         if (response.trajectories.Length > 0)
         {
             Debug.Log("Trajectory returned.");
+            DebugGUI.Log("Trajectory returned.");
             // need copy? or 
             m_Executerequest.trajectories = response.trajectories;
             StartCoroutine(ExecutePlanTrajectories(response));
@@ -151,6 +152,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
         else
         {
             Debug.LogError("No trajectory returned.");
+            DebugGUI.Log("No trajectory returned.");
         }
     }
 
@@ -190,6 +192,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
         if (sum >= 0.02)   //1度左右
         {
             Debug.Log("请同步真实与虚拟机械臂！");
+            DebugGUI.Log("请同步真实与虚拟机械臂！");
             return;
         }
 
@@ -280,6 +283,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
         if (sum >= 0.02)   //1度左右
         {
             Debug.Log("请同步真实与虚拟机械臂！");
+            DebugGUI.Log("请同步真实与虚拟机械臂！");
             return;
         }
         var pose_orientation = i_controller.m_VerticalOrientation.To<FLU>();
@@ -330,6 +334,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
         if (response.trajectories.Length > 0)
         {
             Debug.Log("Trajectory returned.");
+            DebugGUI.Log("Trajectory returned.");
             // need copy? or 
             m_Executerequest.trajectories = response.trajectories;
             StartCoroutine(ExecuteMultiPlanTrajectories(response));
@@ -337,6 +342,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
         else
         {
             Debug.LogError("No trajectory returned.");
+            DebugGUI.Log("No trajectory returned.");
         }
     }
     
@@ -376,7 +382,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
                 /*
                 if (trajectoryIndex == (int)Trajectory.Execute)
                 {
-                    Debug.Log("Welding end, Turn off the laser!")
+                    Debug.LogString("Welding end, Turn off the laser!")
                 }
                 */
 
@@ -421,7 +427,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
                 /*
                 if (trajectoryIndex == (int)Trajectory.Execute)
                 {
-                    Debug.Log("Welding end, Turn off the laser!")
+                    Debug.LogString("Welding end, Turn off the laser!")
                 }
                 */
 
@@ -455,6 +461,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
         else
         {
             Debug.Log("No Trajetories to Execute!");
+            DebugGUI.Log("No Trajetories to Execute!");
         }
 
         
@@ -468,11 +475,13 @@ public class AuboTrajectoryRequest : MonoBehaviour
         if (success_flag == true)
         {
             Debug.Log("Robot execute the plan success!");
+            DebugGUI.Log("Robot execute the plan success!");
             //clear origin data
         }
         else
         {
             Debug.Log("Robot execute the plan failed!");
+            DebugGUI.Log("Robot execute the plan failed!");
         }
 
     }

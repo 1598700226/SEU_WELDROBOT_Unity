@@ -130,19 +130,20 @@ public class PlcConnect : MonoBehaviour
         if (response.success == true)
         {
             Debug.Log("Write Plc Data Successful!");
+            DebugGUI.LogString("Write Plc Data Successful!");
         }
         else
         {
             if (response.error_mode == 1)
             {
                 Debug.Log("Plc Conneting is failed!");
+                DebugGUI.LogString("Write Plc Data Successful!");
             }
             else if (response.error_mode == 2)
             {
                 Debug.Log("The Plc Mode: enable_write is false!");
+                DebugGUI.LogString("Write Plc Data Successful!");
             }
         }
     }
-
-
 }

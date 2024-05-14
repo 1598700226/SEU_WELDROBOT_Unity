@@ -290,7 +290,7 @@ public class DrawPoint : MonoBehaviour
         }
 
         long endTime = ((DateTimeOffset)DateTime.Now).ToUnixTimeMilliseconds();
-        //Debug.Log("【DrawPoints】法线计算完成 cost time:" + (endTime - nowTime) + "ms");
+        //Debug.LogString("【DrawPoints】法线计算完成 cost time:" + (endTime - nowTime) + "ms");
 
         return normals;
     }

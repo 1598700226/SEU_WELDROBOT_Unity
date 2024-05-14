@@ -22,7 +22,7 @@ public class DebugGUIExamples : MonoBehaviour
     *    DebugGUI.SetGraphProperties(key, ...) - Set the properties of the graph with the provided key
     *    DebugGUI.Graph(key, value)            - Push a value to the graph
     *    DebugGUI.LogPersistent(key, value)    - Print a persistent log entry on screen
-    *    DebugGUI.Log(value)                   - Print a temporary log entry on screen
+    *    DebugGUI.LogString(value)                   - Print a temporary log entry on screen
     *    
     *   See DebugGUI.cs for more info
     * 
@@ -60,8 +60,8 @@ public class DebugGUIExamples : MonoBehaviour
             deltaTimeBuffer.Enqueue(0);
         }
 
-        // Log (as opposed to LogPersistent) will disappear automatically after some time.
-        DebugGUI.Log("Hello! I will disappear after some time!");
+        // LogString (as opposed to LogPersistent) will disappear automatically after some time.
+        DebugGUI.LogString("Hello! I will disappear after some time!");
 
         // Set up graph properties using our graph keys
         DebugGUI.SetGraphProperties("smoothFrameRate", "SmoothFPS", 0, 200, 2, new Color(0, 1, 1), false);
@@ -91,7 +91,7 @@ public class DebugGUIExamples : MonoBehaviour
         // Manual logging of mouse clicks
         if (Input.GetMouseButton(0))
         {
-            DebugGUI.Log(string.Format(
+            DebugGUI.LogString(string.Format(
                 "Mouse down ({0}, {1})",
                 mouseX.ToString("F3"),
                 mouseY.ToString("F3")

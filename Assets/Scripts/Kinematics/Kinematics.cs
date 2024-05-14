@@ -236,7 +236,7 @@ public class Kinematics : MonoBehaviour
                 slaver_target_postion[2] = slaver_start_position[2] + master_move_position[1] * LinearScale; // z y
                 Array.Copy(master_current_position, master_previous_position, master_current_position.Length);
                 is_linear_flag = true;
-                //UnityEngine.Debug.Log("linear move" + delta_move_flag.ToString());
+                //UnityEngine.Debug.LogString("linear move" + delta_move_flag.ToString());
             }
             else
             {
@@ -272,7 +272,7 @@ public class Kinematics : MonoBehaviour
                 slaver_target_rotation = slaver_move_rotation * slaver_start_oritation;
                 Array.Copy(master_current_rpy, master_previous_rpy, master_current_rpy.Length);
                 is_angular_flag = true;
-                //UnityEngine.Debug.Log("angular move" + delta_move_rpy.ToString());
+                //UnityEngine.Debug.LogString("angular move" + delta_move_rpy.ToString());
             }
             else
             {
