@@ -1,3 +1,4 @@
+using Gravitons.UI.Modal;
 using RosMessageTypes.Geometry;
 using RosMessageTypes.PlcCommunicate;
 using System;
@@ -457,8 +458,9 @@ public class DataCommon : MonoBehaviour
             btn_manualoperate_start.GetComponentInChildren<TMP_Text>().text = "示教器模式：开";
             auboControl.RobotControllerSwitch(0);   // 0 controller - AuboApi
             // add user prompt dialog
-            ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
-            modelDialogControl.ShowDialog("注意！重要！", "开启拖拽示教模式后不能使用其他模式！");
+            //ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
+            //modelDialogControl.ShowDialog("注意！重要！", "开启拖拽示教模式后不能使用其他模式！");
+            ModalManager.Show("注意！重要！", "开启拖拽示教模式后不能使用其他模式！", new[] { new ModalButton() { Text = "OK" } });
         }
         else
         {
@@ -810,8 +812,9 @@ public class DataCommon : MonoBehaviour
             }
 
             // add user prompt dialog
-            ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
-            modelDialogControl.ShowDialog("注意！重要！", "开启遥操作模式后不能使用其他模式！");
+            //ModelDialogControl modelDialogControl = this.GetComponent<ModelDialogControl>();
+            //modelDialogControl.ShowDialog("注意！重要！", "开启遥操作模式后不能使用其他模式！");
+            ModalManager.Show("注意！重要！", "开启拖拽示教模式后不能使用其他模式！", new[] { new ModalButton() { Text = "OK" } });
         }
         else
         {
