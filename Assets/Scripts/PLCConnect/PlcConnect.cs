@@ -56,7 +56,8 @@ public class PlcConnect : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        m_Ros = GetComponent<ROSConnection>();
+        m_Ros = ROSConnection.GetOrCreateInstance();
+        //m_Ros = GetComponent<ROSConnection>();
         m_Ros.Subscribe<PlcReadDataMsg>(m_PlcDataTopicName, SubPlcData);
         m_Ros.RegisterRosService<WritePlcDataRequest, WritePlcDataResponse>(m_WriteDataServiceName);
         //m_Ros.RegisterRosService<SetPlcModeRequest, SetPlcModeResponse>(m_SetPlcModeServiceName);

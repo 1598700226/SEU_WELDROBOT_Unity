@@ -168,6 +168,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
 
     public void DepthServiceCall()
     {
+        DebugGUI.Log("【DepthServiceCall】请求深度数据");
         RsAlignedDepthImageRequest rsAlignedDepthImageResponse = new RsAlignedDepthImageRequest("unity client call");
         ROSConnection.GetOrCreateInstance().
             SendServiceMessage<RsAlignedDepthImageResponse>(depth_image_service_topic, rsAlignedDepthImageResponse, ServiceCallback_DepthImage);
@@ -178,6 +179,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
         if (showType == 2)
             UpdateRawImageByUshortData(Depths);
         IsBuliding = true;
+        DebugGUI.Log("【ServiceCallback_DepthImage】接收到深度数据");
     }
 
     // Update is called once per frame
@@ -204,6 +206,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
             if (corners == null)
             {
                 Debug.Log("未检测到棋盘格标定板角点！");
+                DebugGUI.Log("未检测到棋盘格标定板角点！");
                 if (matrix4x4_camera2endPoint == Matrix4x4.zero)
                     return;
                 Matrix4x4 matrix4x4_camera2unity = matrix4x4_Ros2Unity * GetMatrixEndPoint2RosBaseFromTF() * matrix4x4_camera2endPoint;
@@ -216,6 +219,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                 }
 
                 IsBuliding = false;
+                DebugGUI.Log("开始三维重建！");
                 StartCoroutine(BulidMultiPointCloudObject(points, pointsColor, picPoints));
             }
             else
@@ -490,7 +494,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                 double totalWeight = 0f;
                 int index = w + h * img_width;
 
-                for (int ih = -size; ih <= size; ih++)
+                for (int ih = -size; ih <= size; ih++)  
                 {
                     for (int iw = -size; iw <= size; iw++)
                     {
