@@ -77,6 +77,34 @@ public class PointCloudShow : MonoBehaviour
         return latestFile.FullName;
     }
 
+    public string[] getMultiviewPointCloudFile(String dirPath)
+    {
+        if (!Directory.Exists(dirPath))
+        {
+            Debug.Log("【getLatestPointCloudFile】文件夹不存在 dirPath:" + dirPath);
+            return null;
+        }
+
+        DirectoryInfo directoryInfo = new DirectoryInfo(dirPath);
+        FileInfo[] files = directoryInfo.GetFiles("*" + fileSuffix);
+        if (files == null || files.Length <= 0)
+        {
+            Debug.Log("【getLatestPointCloudFile】文件夹下不存在点云文件:" + dirPath);
+            return null;
+        }
+
+        // 查询所有多视角图片
+        List<string> filepaths = new List<string>();
+        foreach (FileInfo file in files)
+        {
+            if (file.Name.Contains("pointCloudMul"))
+            {
+                filepaths.Add(file.FullName);
+            }
+        }
+        return filepaths.ToArray();
+    }
+
     IEnumerator loadSceneForWaitSecond()
     {
         while (true)
@@ -97,9 +125,34 @@ public class PointCloudShow : MonoBehaviour
 
     void loadSceneOnce()
     {
-        String pointCloudFile = getLatestPointCloudFile(pointCloudDirPath);
-        Debug.Log("【PointCloudShow】loadSceneOnce更新环境 FilePath：" + pointCloudFile);
-        loadPointCloud(pointCloudFile);
+        string pointCloudFile = getLatestPointCloudFile(pointCloudDirPath);
+        string[] pointCloudMulFiles = getMultiviewPointCloudFile(pointCloudDirPath);
+
+        Debug.Log($"【PointCloudShow】loadSceneOnce更新环境 FilePath：{pointCloudFile}, MulCount:{pointCloudMulFiles.Length}");
+        if (pointCloudMulFiles.Length > 0)
+        {
+            StartCoroutine(loadPointCloudMul(pointCloudMulFiles));
+        }
+        else 
+        {
+            loadPointCloud(pointCloudFile);
+        }
+    }
+
+    public void loadSceneOnce(String dir)
+    {
+        string pointCloudFile = getLatestPointCloudFile(dir);
+        string[] pointCloudMulFiles = getMultiviewPointCloudFile(dir);
+
+        Debug.Log($"【PointCloudShow】loadSceneOnce更新环境 FilePath：{pointCloudFile}, MulCount:{pointCloudMulFiles.Length}");
+        if (pointCloudMulFiles.Length > 0)
+        {
+            StartCoroutine(loadPointCloudMul(pointCloudMulFiles));
+        }
+        else
+        {
+            loadPointCloud(pointCloudFile);
+        }
     }
 
     void loadPointCloud(String filePath)
@@ -112,6 +165,29 @@ public class PointCloudShow : MonoBehaviour
         else
         {
             Debug.Log("File '" + filePath + "' could not be found");
+        }
+    }
+
+    IEnumerator loadPointCloudMul(String[] filePaths)
+    {
+        // Check what file exists
+        if (filePaths.Length > 0)
+        {
+            for (int i = 0; i < filePaths.Length; i++)
+            {
+                string filePath = filePaths[i];
+                if (!String.IsNullOrEmpty(filePath) && File.Exists(filePath))
+                {
+                    Debug.Log("Load OFFFile:" + filePath);
+                    DebugGUI.Log("Load OFFFile:" + filePath);
+                    yield return StartCoroutine(loadOFF(filePath));
+                }
+                else
+                {
+                    Debug.Log("File '" + filePath + "' could not be found");
+                    DebugGUI.Log("File '" + filePath + "' could not be found");
+                }
+            }
         }
     }
 

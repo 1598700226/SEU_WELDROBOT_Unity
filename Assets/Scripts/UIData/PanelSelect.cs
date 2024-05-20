@@ -9,6 +9,8 @@ public class PanelSelect : MonoBehaviour
 {
     // Start is called before the first frame update
     public List<GameObject> panels;
+    [Header("PLCº§π‚œ‘ æ√Ê∞Â")]
+    public GameObject laserPanal;
     public Button leftButton;
     public Button rightButton;
     public Button showPanelButton;
@@ -69,9 +71,9 @@ public class PanelSelect : MonoBehaviour
 
     void FoldNowPanel() 
     {
-        panels[index].SetActive(!panels[index].activeSelf);
-        GameObject laserPanal = GameObject.Find("LaserPanel");
-        laserPanal.SetActive(!panels[index].activeSelf);
+        bool active = !panels[index].activeSelf;
+        panels[index].SetActive(active);
+        laserPanal.SetActive(active);
     }
 
     void CloseApplication()

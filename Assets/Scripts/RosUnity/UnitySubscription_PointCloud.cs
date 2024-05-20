@@ -40,14 +40,15 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     private ushort[] Depths;
 
     /*############## 构造的点云 ##############*/
-    Vector3[] points;                                       // 单次存储的数据
-    Color[] pointsColor;                                    // 单次存储的数据
-    IPoint[] picPoints;                                     // 单次存储的数据
+    Vector3[] points;                                           // 单次存储的数据
+    Color[] pointsColor;                                        // 单次存储的数据
+    IPoint[] picPoints;                                         // 单次存储的数据
 
-    List<Vector3[]> points_mulview = new List<Vector3[]>(); // 多视角存储数据
-    List<Color[]> colors_mulview = new List<Color[]>();     // 多视角存储数据
-    List<ushort[]> depths_mulview = new List<ushort[]>();   // 多视角存储数据
-    List<IPoint[]> picPoints_mulview = new List<IPoint[]>();   // 多视角存储数据
+    int mulNum = 0;                                             // 多视角张数
+    List<Vector3[]> points_mulview = new List<Vector3[]>();     // 多视角存储数据
+    List<Color[]> colors_mulview = new List<Color[]>();         // 多视角存储数据
+    List<ushort[]> depths_mulview = new List<ushort[]>();       // 多视角存储数据
+    List<IPoint[]> picPoints_mulview = new List<IPoint[]>();    // 多视角存储数据
 
     Matrix4x4 InitRT = new Matrix4x4(
         new Vector4(1, 0, 0, 0),
@@ -86,7 +87,10 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     public Vector3 pointCloudPosition = new(0, -400, 900);      // 点云的位置信息，单位mm
     public bool IsSavePointCloud = false;                       // 保存点云数据
     public String PointCloudSavaDirPath = "";                   // 保存的位置
+    [Space(5)]
+    [Header("点云三角化角度限制")]
     public float PointCloudTriangleAngleLimit = 1f;             // 点云三角化角度限制
+    [Header("三角化面积限制")]
     public float PointCloudTriangleAreaLimit = 50f;             // 点云三角化面积限制
 
     /*############## 棋盘格与相机标定 ##############*/
@@ -102,6 +106,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     private List<Emgu.CV.Matrix<double>> endPoint2Base_T = new List<Matrix<double>>();
 
     /*############## ROS话题与服务 ##############*/
+    [Space(5)]
     public string color_image_topic = "/camera1/color/image_raw/compressed";
     public string depth_image_topic = "/camera1/aligned_depth_to_color/image_raw";
     public string depth_image_service_topic = "get_aligned_depth_image";
@@ -218,7 +223,6 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                     points = PointConvert(points, matrix4X4_sift, 1, false);
                 }
 
-                IsBuliding = false;
                 DebugGUI.Log("开始三维重建！");
                 StartCoroutine(BulidMultiPointCloudObject(points, pointsColor, picPoints));
             }
@@ -227,15 +231,32 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                 Matrix4x4 matrix4x4;
                 ChessBoardCalculateRT(corners, Depths, out matrix4x4);
                 points = PointConvert(points, matrix4x4, scala, invertYZ);
-                IsBuliding = false;
                 StartCoroutine(BulidMultiPointCloudObject(points, pointsColor, picPoints));
             }
 
             // 保存多视角数据
-            points_mulview.Add(points);
-            colors_mulview.Add(Colors);
-            depths_mulview.Add(Depths);
-            picPoints_mulview.Add(picPoints);
+            Color[] deepColors = new Color[pointsColor.Length];
+            Array.Copy(pointsColor, deepColors, pointsColor.Length);
+            colors_mulview.Add(deepColors);
+
+            ushort[] deepDepths = new ushort[Depths.Length];
+            Array.Copy(Depths, deepDepths, Depths.Length);
+            depths_mulview.Add(deepDepths);
+
+            Vector3[] deepPoints = new Vector3[points.Length];
+            for (int i = 0; i < points.Length; i++)
+            {
+                deepPoints[i] = new Vector3(points[i].x, points[i].y, points[i].z);
+            }
+            points_mulview.Add(deepPoints);
+
+            IPoint[] deepPicPoints = new IPoint[picPoints.Length];
+            for (int i = 0; i < picPoints.Length; i++)
+            {
+                deepPicPoints[i] = new Algorithm.Delauntor.Models.Point(picPoints[i].X, picPoints[i].Y, picPoints[i].Index);
+            }
+            picPoints_mulview.Add(deepPicPoints);
+            IsBuliding = false;
         }
 
         // 图片控件显示
@@ -264,6 +285,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
             points_mulview.Clear();
             colors_mulview.Clear();
             depths_mulview.Clear();
+            picPoints_mulview.Clear();
 
             target2Camera_R.Clear();
             target2Camera_T.Clear();

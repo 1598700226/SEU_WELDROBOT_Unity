@@ -14,12 +14,14 @@ public class DebugLogGUI : MonoBehaviour
         {
             DebugGUI.LogString("【keyboard Listener】打开DebugGUI显示");
             isShowGUI = true;
+            DebugGUI.Settings.enableLogs = true;
         }
         if (Input.GetKey(KeyCode.Space) && Input.GetKeyDown(KeyCode.C))
         {
             DebugGUI.LogString("【keyboard Listener】关闭DebugGUI显示");
             isShowGUI = false;
             DebugGUI.ClearPersistent();
+            DebugGUI.Settings.enableLogs = false;
         }
 
         if (isShowGUI)
