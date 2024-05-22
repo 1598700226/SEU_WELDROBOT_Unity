@@ -21,6 +21,8 @@ public class DataCommon : MonoBehaviour
     public TMP_InputField input_pointCloudScala; // 点云缩放系数
     [Header("是否点云三角化")]
     public Toggle toggle_pointTriangulation; // 是否点云三角化
+    public Slider slider_3DReconstructionAngle;     // 三角化角度阈值
+    public Slider slider_3DReconstructionArea;     // 三角化面积阈值
     [Header("是否调换YZ数据")]
     public Toggle toggle_inverseYZ; // 是否调换YZ数据
     [Header("是否订阅ROS相机topic")]
@@ -46,6 +48,8 @@ public class DataCommon : MonoBehaviour
     public static int PointCloudUpdateSecond = 5;       // 更新时间
     public static float PointCloudScala = 0.001f;       // 点云缩放比例
     public static bool isPointTriangulation = true;     // 是否点云三角化
+    public static float triangleAngleLimit = 1;         // 点云三角化角度阈值
+    public static float triangleAreaLimit = 0.00005f;         //  点云三角化面积阈值
     public static bool isinverseYZ = true;              // 是否调换YZ
     public static bool isRosCameraSubscription = false; // 是否订阅ROS相机topic
     public static bool isMulViewPointCloud = false;     // 是否多视角保存点云
@@ -185,6 +189,14 @@ public class DataCommon : MonoBehaviour
     public Button btn_aubo_home;
     public Button btn_aubo_sync_virtual2real;
     public Button btn_aubo_sync_real2virtual;
+
+    public TMP_Text lable_robot_tcp_x;
+    public TMP_Text lable_robot_tcp_y;
+    public TMP_Text lable_robot_tcp_z;
+    public TMP_InputField input_robot_tcp_x;
+    public TMP_InputField input_robot_tcp_y;
+    public TMP_InputField input_robot_tcp_z;
+    public Button btn_robot_tcp_update;
     #endregion
 
     #region 高德地图相关
@@ -277,22 +289,21 @@ public class DataCommon : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        // 点云相关
         input_pointCloudFilePath.text = PointCloudFilePath;
         input_pointCloudUpdateSecond.text = PointCloudUpdateSecond.ToString();
         input_pointCloudScala.text = PointCloudScala.ToString();
         toggle_pointTriangulation.isOn = isPointTriangulation;
         toggle_inverseYZ.isOn = isinverseYZ;
         toggle_pointCloudRealRefesh.isOn = isRealRefeshPointCloud;
-
         toggle_pointCloudMouseShow.isOn = isShowMousePoint;
         input_mousePointLoction.text = MousePointLocation;
-
-
         btn_update_setting.onClick.AddListener(PointCloudUpdateSetting);
         btn_update_once.onClick.AddListener(PointCloudUpdateOnce);
         btn_clear_pointcloud.onClick.AddListener(PointCloudClear);
         btn_eyeOnHandCalibrationStart.onClick.AddListener(EyeOnHandCalibrationStart);
 
+        // 机械臂
         btn_manualoperate_start.onClick.AddListener(ManualOperateStart);
         btn_manualoperate_save.onClick.AddListener(ManualOperateSavePostionAndOrientation);
         btn_teaching_operate.onClick.AddListener(TeachingOperateBegin);
@@ -300,33 +311,53 @@ public class DataCommon : MonoBehaviour
         btn_robot_plan.onClick.AddListener(RobotPointPlan);
         btn_robot_replan.onClick.AddListener(RobotPointRePlan);
         btn_robot_exc.onClick.AddListener(RobotPointExc);
+        btn_aubo_teleOperate.onClick.AddListener(AuboTeleOperateMode);
+        btn_aubo_home.onClick.AddListener(AuboJointHome);
+        btn_aubo_sync_virtual2real.onClick.AddListener(AuboSettingSyncV2R);
+        btn_aubo_sync_real2virtual.onClick.AddListener(AuboSettingSyncR2V);
+        btn_robot_tcp_update.onClick.AddListener(RobotTcpUpdate);
 
+        // socket
         btn_socket_connect.onClick.AddListener(SocketConnect);
         btn_socket_map_connect.onClick.AddListener(SocketMapConnect);
 
+        // 导航相关
         btn_map_settingUpdate.onClick.AddListener(PGMUpdateSetting);
         btn_AstarPlanPath.onClick.AddListener(AstarPlanPath);
         input_pgmMousePosition.readOnly = true;
         btn_sendPGMMousePosition.onClick.AddListener(SendPGMMousePosition);
 
-        btn_aubo_teleOperate.onClick.AddListener(AuboTeleOperateMode);
-        btn_aubo_home.onClick.AddListener(AuboJointHome);
-        btn_aubo_sync_virtual2real.onClick.AddListener(AuboSettingSyncV2R);
-        btn_aubo_sync_real2virtual.onClick.AddListener(AuboSettingSyncR2V);
-
+        // 高德
         btn_gaode_refresh.onClick.AddListener(GaodeRefresh);
 
+        // 急停面板
         btn_robot_stop.onClick.AddListener(RobotStop);
         btn_car_stop.onClick.AddListener(CarStop);
         btn_everything_stop.onClick.AddListener(EveryThingStop);
 
+        // 控制箱串口
         btn_serialport_search.onClick.AddListener(ControlBoxSerialportSearch);
         btn_serialport_open.onClick.AddListener(ControlBoxSerialportOpen);
         btn_serialport_close.onClick.AddListener(ControlBoxSerialportClose);
 
+        // plc通信
         btn_read_plc.onClick.AddListener(ReadPLCData);
         btn_update_plc.onClick.AddListener(UpdatePLCData);
         btn_open_laser.onClick.AddListener(OpenLaser);
+
+        // 读取配置
+        RobotTCPData robotTCPData = RobotTCP.ReadJsonData();
+        if (robotTCPData == null)
+        {
+            AuboTrajectoryRequest auboTrajectoryRequest = GameObject.Find("aubo_i5_publish").GetComponent<AuboTrajectoryRequest>();
+            robotTCPData = auboTrajectoryRequest.ToolEndRead();
+        }
+        lable_robot_tcp_x.text = robotTCPData.tcp_x.ToString();
+        lable_robot_tcp_y.text = robotTCPData.tcp_y.ToString();
+        lable_robot_tcp_z.text = robotTCPData.tcp_z.ToString();
+        input_robot_tcp_x.text = robotTCPData.tcp_x.ToString();
+        input_robot_tcp_y.text = robotTCPData.tcp_y.ToString();
+        input_robot_tcp_z.text = robotTCPData.tcp_z.ToString();
     }
 
     // Update is called once per frame
@@ -359,6 +390,8 @@ public class DataCommon : MonoBehaviour
             PointCloudUpdateSecond = int.Parse(input_pointCloudUpdateSecond.text);
             PointCloudScala = float.Parse(input_pointCloudScala.text);
             isPointTriangulation = toggle_pointTriangulation.isOn;
+            triangleAngleLimit = slider_3DReconstructionAngle.value;
+            triangleAreaLimit = slider_3DReconstructionArea.value;
             isinverseYZ = toggle_inverseYZ.isOn;
             isRealRefeshPointCloud = toggle_pointCloudRealRefesh.isOn;
             isShowMousePoint = toggle_pointCloudMouseShow.isOn;
@@ -382,6 +415,8 @@ public class DataCommon : MonoBehaviour
         PointCloudShow.scale = PointCloudScala;
         PointCloudShow.invertYZ = isinverseYZ;
         PointCloudShow.isPointTriangle = isPointTriangulation;
+        PointCloudShow.PointCloudTriangleAngleLimit = triangleAngleLimit;
+        PointCloudShow.PointCloudTriangleAreaLimit = triangleAreaLimit;
 
         // 更新ros订阅显示的配置
         UnitySubscription_PointCloud unitySubscription_PointCloud = GameObject.Find("RosColorDepthData").GetComponent<UnitySubscription_PointCloud>();
@@ -392,6 +427,8 @@ public class DataCommon : MonoBehaviour
         unitySubscription_PointCloud.scala = PointCloudScala;
         unitySubscription_PointCloud.IsMultiViewPointCloudShow = toggle_mulViewPointCloud.isOn;
         unitySubscription_PointCloud.IsCalibration = toggle_eyeOnHandCalibration.isOn;
+        unitySubscription_PointCloud.PointCloudTriangleAngleLimit = triangleAngleLimit;
+        unitySubscription_PointCloud.PointCloudTriangleAreaLimit = triangleAreaLimit;
         UnitySubscription_AvoidanceCamrea unitySubscription_AvoidanceCamrea = GameObject.Find("RosAvoidanceColorDepthData").GetComponent<UnitySubscription_AvoidanceCamrea>();
         unitySubscription_AvoidanceCamrea.showType = dropdown_CameraShow.value;
         if (toggle_rosCameraSubscription.isOn)
@@ -914,6 +951,55 @@ public class DataCommon : MonoBehaviour
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         double[] realjoints = auboControl.m_RealJointsState;
         auboControl.SetJointState(realjoints);
+    }
+
+    void RobotTcpUpdate()
+    {
+        try
+        {
+            float tcp_x;
+            if (string.IsNullOrEmpty(input_robot_tcp_x.text.Trim()))
+            {
+                tcp_x = float.Parse(lable_robot_tcp_x.text.Trim());
+            }
+            else 
+            {
+                tcp_x = float.Parse(input_robot_tcp_x.text.Trim());
+            }
+
+            float tcp_y;
+            if (string.IsNullOrEmpty(input_robot_tcp_y.text.Trim()))
+            {
+                tcp_y = float.Parse(lable_robot_tcp_y.text.Trim());
+            }
+            else
+            {
+                tcp_y = float.Parse(input_robot_tcp_y.text.Trim());
+            }
+
+            float tcp_z;
+            if (string.IsNullOrEmpty(input_robot_tcp_z.text.Trim()))
+            {
+                tcp_z = float.Parse(lable_robot_tcp_z.text.Trim());
+            }
+            else
+            {
+                tcp_z = float.Parse(input_robot_tcp_z.text.Trim());
+            }
+
+            RobotTCPData robotTCPData = new RobotTCPData(tcp_x, tcp_y, tcp_z);
+            RobotTCP.SaveJsonData(robotTCPData);
+            AuboTrajectoryRequest auboTrajectoryRequest = GameObject.Find("aubo_i5_publish").GetComponent<AuboTrajectoryRequest>();
+            auboTrajectoryRequest.ToolEndSetting(robotTCPData);
+            lable_robot_tcp_x.text = robotTCPData.tcp_x.ToString();
+            lable_robot_tcp_y.text = robotTCPData.tcp_y.ToString();
+            lable_robot_tcp_z.text = robotTCPData.tcp_z.ToString();
+        }
+        catch
+        {
+            Debug.Log("【RobotTcpUpdate】更新失败");
+            DebugGUI.Log("【RobotTcpUpdate】更新失败");
+        }
     }
 
     /**********************************************高德地图相关事件******************************************/

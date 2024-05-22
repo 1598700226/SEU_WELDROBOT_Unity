@@ -50,18 +50,32 @@ public class AuboTrajectoryRequest : MonoBehaviour
         new Vector4(1, 0, 0, 0),
         new Vector4(0, 1, 0, 0),
         new Vector4(0, 0, 1, 0),
-        new Vector4(-0.1342f, 0.0049f, 0.16771f, 1)
+        new Vector4(-0.1342f, 0.0049f, 0.16771f + 0.01f, 1)
         );
 
     Matrix4x4 matrix4X4_weld2EndPoints_Ros = new Matrix4x4(
         new Vector4(1, 0, 0, 0),
         new Vector4(0, 1, 0, 0),
         new Vector4(0, 0, 1, 0),
-        new Vector4(-0.1342f, 0.0049f, 0.16771f, 1)
+        new Vector4(-0.1342f, 0.0049f, 0.16771f + 0.01f, 1)
     );
-    public void ToolEndSettingOffset(float offset) 
+    public void ToolEndSettingOffset(float offset)
     {
         matrix4X4_weld2EndPoints_Ros.m23 = matrix4X4_weld2EndPointsInit_Ros.m23 + offset;
+    }
+    public void ToolEndSetting(RobotTCPData robotTCPData)
+    {
+        matrix4X4_weld2EndPointsInit_Ros.m03 = robotTCPData.tcp_x;
+        matrix4X4_weld2EndPointsInit_Ros.m13 = robotTCPData.tcp_y;
+        matrix4X4_weld2EndPointsInit_Ros.m23 = robotTCPData.tcp_z;
+    }
+    public RobotTCPData ToolEndRead() 
+    {
+        RobotTCPData robotTCPData = new RobotTCPData();
+        robotTCPData.tcp_x = matrix4X4_weld2EndPointsInit_Ros.m03;
+        robotTCPData.tcp_y = matrix4X4_weld2EndPointsInit_Ros.m13;
+        robotTCPData.tcp_z = matrix4X4_weld2EndPointsInit_Ros.m23;
+        return robotTCPData;
     }
 
     void Start()

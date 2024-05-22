@@ -161,16 +161,16 @@ public class ControlBoxDataHandle : MonoBehaviour
         }
         #endregion
         #region  机械臂急停
-        if (buttonData[15] != oldButtonData[15])
+        if (buttonData[16] != oldButtonData[16])
         {
-            DebugGUI.LogString($"【控制箱】机械臂急停 btn_15:{buttonData[15]}");
+            DebugGUI.LogString($"【控制箱】机械臂急停 btn_16:{buttonData[16]}");
             dataCommon.RobotStop();
         }
         #endregion
         #region 机器人急停
-        if (buttonData[16] != oldButtonData[16])
+        if (buttonData[15] != oldButtonData[15])
         {
-            DebugGUI.LogString($"【控制箱】机器人急停 btn_16:{buttonData[16]}");
+            DebugGUI.LogString($"【控制箱】机器人急停 btn_15:{buttonData[15]}");
             dataCommon.CarStop();
         }
         #endregion

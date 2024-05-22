@@ -31,8 +31,8 @@ public class PointCloudShow : MonoBehaviour
     public static int pointCloudDelayShow = 15;
     public int numPoints;
     public int numTriangles;
-    public float PointCloudTriangleAngleLimit = 1f;             // 点云三角化角度限制
-    public float PointCloudTriangleAreaLimit = 50f;             // 点云三角化面积限制
+    public static float PointCloudTriangleAngleLimit = 1f;             // 点云三角化角度限制
+    public static float PointCloudTriangleAreaLimit = 50f;             // 点云三角化面积限制
 
     private int limitPoints = 65001;
 

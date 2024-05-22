@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using RosMessageTypes.Geometry;
 using RosMessageTypes.PlcCommunicate;
+using RosMessageTypes.Std;
 
 using Unity.Robotics.ROSTCPConnector;
 using Unity.Robotics.ROSTCPConnector.ROSGeometry;
@@ -12,11 +13,15 @@ public class PlcConnect : MonoBehaviour
     const string m_PlcDataTopicName = "/plc_data";
     const string m_WriteDataServiceName = "/write_plc_data";
     const string m_SetPlcModeServiceName = "/set_plc_mode";
+    const string m_HeartbeatTopicName = "/heartbeat_signal";
 
     ROSConnection m_Ros;
 
     //public PlcReadDataMsg m_PlcData;
     //public WritePlcDataRequest m_WritePlcData;
+
+    public float k_PublishHeartbeatFrequecy;
+    public bool heartbeat_flag;
 
     //Read Data
     public bool read_plc_pulse = false;
@@ -56,19 +61,36 @@ public class PlcConnect : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        k_PublishHeartbeatFrequecy = 0.5f;
+        heartbeat_flag = false;
+
         m_Ros = ROSConnection.GetOrCreateInstance();
-        //m_Ros = GetComponent<ROSConnection>();
         m_Ros.Subscribe<PlcReadDataMsg>(m_PlcDataTopicName, SubPlcData);
         m_Ros.RegisterRosService<WritePlcDataRequest, WritePlcDataResponse>(m_WriteDataServiceName);
+        m_Ros.RegisterPublisher<BoolMsg>(m_HeartbeatTopicName);
         //m_Ros.RegisterRosService<SetPlcModeRequest, SetPlcModeResponse>(m_SetPlcModeServiceName);
 
-        
+        StartCoroutine(SendHeartbeat(k_PublishHeartbeatFrequecy)); // 开始协程，间隔发送消息
+
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
+    }
+
+    IEnumerator SendHeartbeat(float interval)
+    {
+        while (true)
+        {
+            heartbeat_flag = !heartbeat_flag;
+            BoolMsg msg = new BoolMsg(heartbeat_flag);
+            m_Ros.Publish(m_HeartbeatTopicName, msg);
+
+            yield return new WaitForSeconds(interval); // 等待指定的时间间隔
+        }
+
     }
 
     public void SubPlcData(PlcReadDataMsg plc_data)
@@ -79,7 +101,7 @@ public class PlcConnect : MonoBehaviour
         read_plc_manual = plc_data.plc_manual;
         read_plc_reset = plc_data.plc_reset;
         read_laser_enable = plc_data.laser_enable;
-        read_laser_error = plc_data.laser_error;   
+        read_laser_error = plc_data.laser_error;
         read_laser_working = plc_data.laser_working;
         read_open_instruction = plc_data.open_instruction;
         read_open_gas = plc_data.open_gas;
@@ -95,7 +117,7 @@ public class PlcConnect : MonoBehaviour
     // mode_choose:用于选择是否仅开启激光器，不再改变其他参数
     // 大于2时：仅开启或关闭激光器  偶数：开启激光器  奇数：关闭激光器
     // 小于等于2时 设置相应参数
-    public void WriteToPlcData(int mode_choose) 
+    public void WriteToPlcData(int mode_choose)
     {
         var request = new WritePlcDataRequest();
 
@@ -131,20 +153,22 @@ public class PlcConnect : MonoBehaviour
         if (response.success == true)
         {
             Debug.Log("Write Plc Data Successful!");
-            DebugGUI.LogString("Write Plc Data Successful!");
+            DebugGUI.Log("Write Plc Data Successful!");
         }
         else
         {
             if (response.error_mode == 1)
             {
                 Debug.Log("Plc Conneting is failed!");
-                DebugGUI.LogString("Write Plc Data Successful!");
+                DebugGUI.Log("Plc Conneting is failed!");
             }
             else if (response.error_mode == 2)
             {
                 Debug.Log("The Plc Mode: enable_write is false!");
-                DebugGUI.LogString("Write Plc Data Successful!");
+                DebugGUI.Log("The Plc Mode: enable_write is false!");
             }
         }
     }
+
+
 }
