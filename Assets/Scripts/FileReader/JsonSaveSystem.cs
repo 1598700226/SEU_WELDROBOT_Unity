@@ -17,10 +17,12 @@ public class JsonSaveSystem
             }
             File.WriteAllText(path, json);
             Debug.Log($"¡¾SaveByJson¡¿ Success To Save JsonData to {path}");
+            DebugGUI.Log($"¡¾SaveByJson¡¿ Success To Save JsonData to {path}");
         }
         catch (Exception ex) 
         {
             Debug.Log($"¡¾SaveByJson¡¿ Fail To Save JsonData to {path}, \n {ex}");
+            DebugGUI.Log($"¡¾SaveByJson¡¿ Fail To Save JsonData to {path}, \n {ex}");
         }
     }
 
@@ -28,15 +30,16 @@ public class JsonSaveSystem
     {
         var path = Path.Combine(Application.persistentDataPath, jsonFileName);
 
-        try 
+        try
         {
             var json = File.ReadAllText(path);
             var data = JsonUtility.FromJson<T>(json);
             return data;
         }
-        catch (Exception ex) 
+        catch (Exception ex)
         {
             Debug.Log($"¡¾LoadFromJson¡¿ Fail To Load JsonData at {path}, \n {ex}");
+            DebugGUI.Log($"¡¾LoadFromJson¡¿ Fail To Load JsonData at {path}, \n {ex}");
             return default;
         }
     }
@@ -55,6 +58,7 @@ public class JsonSaveSystem
         catch (Exception ex)
         {
             Debug.Log($"¡¾DeleteSaveFile¡¿ Fail To Delete JsonData at {path}, \n {ex}");
+            DebugGUI.Log($"¡¾DeleteSaveFile¡¿ Fail To Delete JsonData at {path}, \n {ex}");
         }
     }
 }

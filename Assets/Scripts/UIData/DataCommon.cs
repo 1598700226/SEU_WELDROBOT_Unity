@@ -137,7 +137,7 @@ public class DataCommon : MonoBehaviour
     public Button btn_AstarPlanPath;
     [Header("地图上的坐标")]
     public TMP_InputField input_pgmMousePosition;
-    [Header("socket发送PGM地图点的位置")]
+    [Header("发送PGM地图点的位置")]
     public Button btn_sendPGMMousePosition;
     #endregion
 
@@ -183,10 +183,12 @@ public class DataCommon : MonoBehaviour
     public TMP_InputField input_aubo_endPoint_rw;
     public Toggle toggle_aubo_send_isJoint;
     public TMP_InputField input_aubo_speed;
+    public Slider Slider_touch_speed;
 
     public TMP_Dropdown dropDown_aubo_teleOperateMode;
     public Button btn_aubo_teleOperate;
     public Button btn_aubo_home;
+    public Button btn_save_aubo_home;
     public Button btn_aubo_sync_virtual2real;
     public Button btn_aubo_sync_real2virtual;
 
@@ -313,6 +315,7 @@ public class DataCommon : MonoBehaviour
         btn_robot_exc.onClick.AddListener(RobotPointExc);
         btn_aubo_teleOperate.onClick.AddListener(AuboTeleOperateMode);
         btn_aubo_home.onClick.AddListener(AuboJointHome);
+        btn_save_aubo_home.onClick.AddListener(AuboSaveJointHome);
         btn_aubo_sync_virtual2real.onClick.AddListener(AuboSettingSyncV2R);
         btn_aubo_sync_real2virtual.onClick.AddListener(AuboSettingSyncR2V);
         btn_robot_tcp_update.onClick.AddListener(RobotTcpUpdate);
@@ -738,10 +741,7 @@ public class DataCommon : MonoBehaviour
         pgmFileReader.isLocalMagnification = toggle_LocalMagnificationSelect.isOn;
         if (toggle_rosMapSubscriptionSelect.isOn)
         {
-            unitySubscription_Map.SubscribeTopics();
-        }
-        else {
-            unitySubscription_Map.UnSubscribeTopics();
+            unitySubscription_Map.MapServiceCall();
         }
 
         try
@@ -818,6 +818,10 @@ public class DataCommon : MonoBehaviour
         {
             auboControl.m_JointVelocity = double.Parse(input_aubo_speed.text);
         }
+
+        // 修改touch的速度
+        Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+        kinematics.LinearScale = Slider_touch_speed.value;
     }
 
     void AuboTeleOperateMode()
@@ -859,9 +863,16 @@ public class DataCommon : MonoBehaviour
         }
     }
 
-    public void AuboJointHome() {
+    public void AuboJointHome()
+    {
         AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
         auboControl.AuboToHome();
+    }
+
+    public void AuboSaveJointHome()
+    {
+        AuboControl auboControl = GameObject.Find("aubo_i5_publish").GetComponent<AuboControl>();
+        auboControl.SaveCurrenJointsHome();
     }
 
     void AuboSettingSyncV2R()

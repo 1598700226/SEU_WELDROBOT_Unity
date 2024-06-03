@@ -149,7 +149,14 @@ public partial class DebugGUI : MonoBehaviour
     public static void Log(object message)
     {
         if (Settings.enableLogs)
-            Instance.logWindow.Log(message.ToString());
+            //Instance.logWindow.Log(message.ToString());
+        {
+            string[] messages = message.ToString().Split('\n');
+            foreach (string s in messages)
+            {
+                Instance.logWindow.Log(s.ToString());
+            }
+        }
     }
 
     public static void LogString(string message)

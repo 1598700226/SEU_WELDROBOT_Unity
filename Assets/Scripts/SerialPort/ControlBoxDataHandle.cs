@@ -186,7 +186,7 @@ public class ControlBoxDataHandle : MonoBehaviour
         #region »úÐµ±ÛËÙ¶È
         if (adData[7] != oldADData[7])
         {
-            float auboSpeed = (adData[7] - 0.0f) / 4096f * 0.1f + 0.05f;
+            float auboSpeed = (adData[7] - 0.0f) / 4096f * 0.09f + 0.01f;
             dataCommon.input_aubo_speed.text = auboSpeed.ToString("F2");
         }
         #endregion

@@ -61,7 +61,7 @@ public class Kinematics : MonoBehaviour
 
     bool TeleoperationEngaged = false;
 
-    double LinearScale = 2;
+    public double LinearScale = 2;
 
     public bool is_linear_only = false;
     public bool is_angular_only = false;

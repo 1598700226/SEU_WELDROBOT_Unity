@@ -98,7 +98,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
     private int width_num = 4;
     private System.Drawing.Size subCorner_win_size = new System.Drawing.Size(7, 7);  // 棋盘格在视野越小，这个值需要设置小
     private MCvTermCriteria mCvTermCriteria = new MCvTermCriteria(30, 0.1); // 终止条件 次数或重投影误差
-    private float actual_dis = 33.0f;  // mm
+    private float actual_dis = 31.0f;  // mm
 
     private List<Emgu.CV.Matrix<double>> target2Camera_R = new List<Matrix<double>>(); 
     private List<Emgu.CV.Matrix<double>> target2Camera_T = new List<Matrix<double>>();
@@ -1195,6 +1195,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
                 target2Camera_R.Count < 4 || target2Camera_T.Count < 4)
             {
                 Debug.Log($"【EyeOnHandCalibrationConfrim】当前标定次数不满足 count < 4");
+                DebugGUI.Log($"【EyeOnHandCalibrationConfrim】当前标定次数不满足 count < 4");
                 return;
             }
 
@@ -1208,6 +1209,10 @@ public class UnitySubscription_PointCloud : MonoBehaviour
             Debug.Log($"【相机标定TF】matrix4x4_camera2endPoint: \n " +
                         $"平移:\n {ExtractPositionFromMatrix(matrix4x4_camera2endPoint)}" +
                         $"旋转:\n {ExtractRotationFromMatrix(matrix4x4_camera2endPoint)}");
+            DebugGUI.Log($"【相机标定CE】camera2endPoint: \n{matrix4x4_camera2endPoint}");
+            DebugGUI.Log($"【相机标定TF】matrix4x4_camera2endPoint: \n " +
+                        $"平移:\n {ExtractPositionFromMatrix(matrix4x4_camera2endPoint)}" +
+                        $"旋转:\n {ExtractRotationFromMatrix(matrix4x4_camera2endPoint)}");
 
             EyeOnHandCalibrationData eyeOnHandCalibrationData = new EyeOnHandCalibrationData();
             eyeOnHandCalibrationData.CameraToEndPoint = matrix4x4_camera2endPoint;
@@ -1217,6 +1222,7 @@ public class UnitySubscription_PointCloud : MonoBehaviour
         else 
         {
             Debug.Log("【EyeOnHandCalibrationConfrim】当前并不处于手眼标定模式");
+            DebugGUI.Log("【EyeOnHandCalibrationConfrim】当前并不处于手眼标定模式");
         }
     }
 

@@ -18,18 +18,22 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public RawImage rawImage;   // 用于显示图像的UI RawImage
     public TMP_Text lableTitle;     
     private Texture2D pgmTexture2D;
+    private int updateCoroutinePixelLimit = 250000;     // 协程更新像素点数量的限制
+    private bool isUpdatePgmTextureRunning = false;   // 当前是否正在更新PGM地图
     private Texture2D pgmCarPositionTexture2D;
     public bool isUpdatePGMMapOnce = true;
     public bool isReceviceRosMapTopic = false;
     public GameObject RosMapTopicsServer;
+    public int AstarNodeSize = 20;
+    public int AstarObstacleGray = 255;
 
     // PGM图片的信息
     string fileSuffix = ".pgm";
     int width = 0;
     int height = 0;
     int maxPixelValue = 0;
-    int[,] pixels = null;               // 【行，列】
-    float imageShow_width_scala = 0.0f; //缩放系数 图像像素位置*scala = 实际图像像素位置
+    int[,] pixels = null;                // 【行，列】
+    float imageShow_width_scala = 0.0f;  //缩放系数 图像像素位置*scala = 实际图像像素位置
     float imageShow_height_scala = 0.0f; //缩放系数 图像像素位置*scala = 实际图像像素位置..
 
     // 鼠标控制
@@ -41,9 +45,10 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public bool isLocalMagnification = true;
 
     // 定位点显示
-    public int PointShowSize = 10; 
+    public int PointShowSize = 20; 
     public Vector2 nowPosition = Vector2.zero;                     // unity图片坐标系下的点
     public Vector2 nowPosition_actual = Vector2.zero;
+    private bool isShowPositionRunning = false;                    // 更新坐标点显示的协程
 
     // Start is called before the first frame update
     void Start()
@@ -63,7 +68,7 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             {
                 updateFilePath = getLatestPGMFile(pgmFileDir);
             }
-            else 
+            else
             { 
                 updateFilePath = pgmFilePath;
             }
@@ -71,7 +76,8 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             bool ret = UploadPGMMap(updateFilePath);
             if (ret) {
                 Debug.Log("【PGMFileReader】更新PGM地图文件：" + updateFilePath);
-                UpdateRawImage(width, height, pixels, maxPixelValue);
+                DebugGUI.Log("【PGMFileReader】更新PGM地图文件：" + updateFilePath);
+                StartCoroutine(UpdateRawImage(width, height, pixels, maxPixelValue));
             }
         }
 
@@ -109,8 +115,8 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
         }
 
+        UnitySubscription_Map unitySubscription_Map = RosMapTopicsServer.GetComponent<UnitySubscription_Map>();
         if (isReceviceRosMapTopic) {
-            UnitySubscription_Map unitySubscription_Map = RosMapTopicsServer.GetComponent<UnitySubscription_Map>();
             if (unitySubscription_Map.hasNewDataReceive) {
                 unitySubscription_Map.hasNewDataReceive = false;
                 pixels = unitySubscription_Map.pixel;
@@ -118,38 +124,39 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                 height = unitySubscription_Map.map_height;
                 maxPixelValue = unitySubscription_Map.max_pixel;
 
-                UpdateRawImage(width, height, pixels, maxPixelValue);
+                StartCoroutine(UpdateRawImage(width, height, pixels, maxPixelValue));
             }
+        }
 
-            if (unitySubscription_Map.hasNewNowPositionReceive)
-            {
-                unitySubscription_Map.hasNewNowPositionReceive = false;
-                nowPosition_actual = unitySubscription_Map.nowPosition;
-                nowPosition = new Vector2(nowPosition_actual.x, height - nowPosition_actual.y);
-                List<Vector2> points = new List<Vector2>
+        if (unitySubscription_Map.hasNewNowPositionReceive)
+        {
+            unitySubscription_Map.hasNewNowPositionReceive = false;
+            nowPosition_actual = unitySubscription_Map.nowPosition;
+            nowPosition = new Vector2(nowPosition_actual.x, height - nowPosition_actual.y);
+            List<Vector2> points = new List<Vector2>
                 {
                     nowPosition
                 };
 
-                // Astar search path
-                if (nowPosition == Vector2.zero || mouseDownPositon == Vector2.zero)
-                {
-                    return;
-                }
-                AStarAlgorithm.Astar astar = new AStarAlgorithm.Astar(pixels,
-                    width, height, 10);
-                List<Vector2> pathPoints = astar.getPath(nowPosition, mouseDownPositon);
-                if (pathPoints == null)
-                {
-                    Debug.Log("【Astar】路径规划失败，可能终点不可达");
-                }
-                else 
-                {
-                    points.AddRange(pathPoints);
-                }
-                points.Add(mouseDownPositon);
-                UpdatePostionShow(points, 10, true);
+            // Astar search path
+            if (nowPosition == Vector2.zero || mouseDownPositon == Vector2.zero)
+            {
+                return;
             }
+            AStarAlgorithm.Astar astar = new AStarAlgorithm.Astar(pixels,
+                width, height, AstarNodeSize, AstarObstacleGray);
+            List<Vector2> pathPoints = astar.getPath(nowPosition, mouseDownPositon);
+            if (pathPoints == null)
+            {
+                Debug.Log("【Astar】hasNewNowPositionReceive 路径规划失败，可能终点不可达");
+                DebugGUI.Log("【Astar】hasNewNowPositionReceive 路径规划失败，可能终点不可达");
+            }
+            else
+            {
+                points.AddRange(pathPoints);
+            }
+            points.Add(mouseDownPositon);
+            StartCoroutine(UpdatePostionShow(points, PointShowSize, true));
         }
     }
 
@@ -239,16 +246,26 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         else
         {
             Debug.Log("【PGMFileReader】PGM文件不存在。" + filePath);
+            DebugGUI.Log("【PGMFileReader】PGM文件不存在。" + filePath);
             return false;
         }
     }
 
-    private void UpdateRawImage(int img_width, int img_height, int[,] data, int maxPixelValue) {
-        if (rawImage == null) {
-            Debug.Log("【PGMFileReader error】rawImage控件为空");
-            return;
+    private IEnumerator UpdateRawImage(int img_width, int img_height, int[,] data, int maxPixelValue) {
+        if (rawImage == null)
+        {
+            Debug.Log("【PGMFileReader】rawImage控件为空");
+            DebugGUI.Log("【PGMFileReader】rawImage控件为空");
+            yield break;
+        }
+        if (isUpdatePgmTextureRunning)
+        {
+            Debug.Log("【PGMFileReader】UpdateRawImage 当前正在更新地图");
+            DebugGUI.Log("【PGMFileReader】UpdateRawImage 当前正在更新地图");
+            yield break;
         }
 
+        isUpdatePgmTextureRunning = true;
         // 创建一个Texture2D来加载像素数据
         // 销毁旧的Texture2D以防止内存泄漏
         if (pgmTexture2D != null)
@@ -257,6 +274,7 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
         pgmTexture2D = new Texture2D(img_width, img_height);
         // 将像素数据填充到Texture2D
+        int count = 0;
         for (int y = 0; y < img_height; y++)
         {
             for (int x = 0; x < img_width; x++)
@@ -264,6 +282,11 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                 float normalizedValue = (float)data[y, x] / (float)maxPixelValue;
                 Color color = new Color(1 - normalizedValue, 1 - normalizedValue, 1 - normalizedValue);
                 pgmTexture2D.SetPixel(x, img_height - 1 - y, color);  // 需要翻转y轴以匹配Unity坐标系
+                count++;
+                if(count % updateCoroutinePixelLimit == 0)
+                {
+                    yield return null;
+                }
             }
         }
 
@@ -273,7 +296,9 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         // 更新图像控件的大小并获取缩放比例
         imageShow_width_scala = img_width / rawImage.rectTransform.rect.width;
         imageShow_height_scala = img_height / rawImage.rectTransform.rect.height;
-        PointShowSize = img_width / 80;
+        //PointShowSize = img_width / 80;
+
+        isUpdatePgmTextureRunning = false;
     }
 
     private Vector2 MousePositionRelativeToImagePosition() 
@@ -342,6 +367,7 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             mouseDownPositon = new Vector2(start_x + offset_x, start_y + offset_y);
             mouseDownPositon_actual = new Vector2(mouseDownPositon.x, height - mouseDownPositon.y);
             Debug.Log($"【PGMFileReader】mouseDownPositon:{mouseDownPositon} mouseDownPositon_actual: {mouseDownPositon_actual}");
+            DebugGUI.Log($"【PGMFileReader】mouseDownPositon:{mouseDownPositon} mouseDownPositon_actual: {mouseDownPositon_actual}");
         }
         if(eventData.button == PointerEventData.InputButton.Right)
         {
@@ -352,16 +378,25 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         List<Vector2> points = new List<Vector2>();
         points.Add(nowPosition);
         points.Add(mouseDownPositon);
-        UpdatePostionShow(points, 10, true);
+        StartCoroutine(UpdatePostionShow(points, PointShowSize, true));
     }
 
-    public void UpdatePostionShow(List<Vector2> positions, int areaSize, bool isShow) {
+    public IEnumerator UpdatePostionShow(List<Vector2> positions, int areaSize, bool isShow) {
+        if (isShowPositionRunning)
+        {
+            Debug.Log("【PGMFileReader】UpdatePostionShow 当前正在更新点");
+            yield break;
+        }
+
         if (pgmTexture2D == null)
         {
             Debug.Log("【PGMFileReader】UpdatePostionShow pgmTexture2D == null");
-            return;
+            DebugGUI.Log("【PGMFileReader】UpdatePostionShow pgmTexture2D == null");
+            yield break;
         }
 
+        // 开始绘制点
+        isShowPositionRunning = true;
         // 创建一个新的Texture2D对象，尺寸和格式与原始纹理相同
         if (pgmCarPositionTexture2D != null) {
             Destroy(pgmCarPositionTexture2D);
@@ -391,6 +426,13 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                 px = px < 0 ? 0 : px;
                 py = py < 0 ? 0 : py;
 
+                // 防止出界
+                if ((int)positions[i].x + areaSize / 2 >= pgmTexture2D.width ||
+                    (int)positions[i].y + areaSize / 2 >= pgmTexture2D.height)
+                {
+                    continue;
+                }
+
                 if (i == 0)
                 {
                     pgmCarPositionTexture2D.SetPixels(px, py,
@@ -415,6 +457,8 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             pgmCarPositionTexture2D.Apply();
             rawImage.texture = pgmCarPositionTexture2D;
         }
+
+        isShowPositionRunning = false;
     }
 
     public void AstarPlan() 
@@ -425,13 +469,14 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         }
 
         AStarAlgorithm.Astar astar = new AStarAlgorithm.Astar(pixels,
-            width, height, 10);
+            width, height, AstarNodeSize, AstarObstacleGray);
         List<Vector2> pathPoints = astar.getPath(nowPosition, mouseDownPositon);
         if (pathPoints == null)
         {
             Debug.Log("【Astar】路径规划失败，可能终点不可达");
+            DebugGUI.Log("【Astar】路径规划失败，可能终点不可达");
             return;
         }
-        UpdatePostionShow(pathPoints, 10, true);
+        StartCoroutine(UpdatePostionShow(pathPoints, PointShowSize, true));
     }
 }

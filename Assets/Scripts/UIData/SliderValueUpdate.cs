@@ -12,6 +12,7 @@ public class SliderValueUpdate : MonoBehaviour
     void Start()
     {
         slider.onValueChanged.AddListener(delegate { UpdateValueText(); });
+        valueText.text = slider.value.ToString("F8");
     }
 
     void UpdateValueText()
