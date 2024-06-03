@@ -160,13 +160,21 @@ public class AuboControl : MonoBehaviour
     {
         SetJointState(AuboStartJoints[robotType]);
 
-        AuboConfigData auboConfigData = AuboConfig.ReadJsonData();
-        AuboHomeJoints[robotType][0] = auboConfigData.initJoint1;
-        AuboHomeJoints[robotType][1] = auboConfigData.initJoint2;
-        AuboHomeJoints[robotType][2] = auboConfigData.initJoint3;
-        AuboHomeJoints[robotType][3] = auboConfigData.initJoint4;
-        AuboHomeJoints[robotType][4] = auboConfigData.initJoint5;
-        AuboHomeJoints[robotType][5] = auboConfigData.initJoint6;
+        try
+        {
+            AuboConfigData auboConfigData = AuboConfig.ReadJsonData();
+            AuboHomeJoints[robotType][0] = auboConfigData.initJoint1;
+            AuboHomeJoints[robotType][1] = auboConfigData.initJoint2;
+            AuboHomeJoints[robotType][2] = auboConfigData.initJoint3;
+            AuboHomeJoints[robotType][3] = auboConfigData.initJoint4;
+            AuboHomeJoints[robotType][4] = auboConfigData.initJoint5;
+            AuboHomeJoints[robotType][5] = auboConfigData.initJoint6;
+        }
+        catch
+        {
+            Debug.Log($"【AuboCotrol】读取虚拟初始位置配置文件失败");
+            DebugGUI.Log($"【AuboCotrol】读取虚拟初始位置配置文件失败");
+        }
     }
 
     public void AuboToHome()
