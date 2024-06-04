@@ -60,7 +60,7 @@ public class AuboControl : MonoBehaviour
     // Interval of simulate robot executing
     public float k_JointAssignmentWait = 0.1f;
     public float k_PoseAssignmentWait = 0.5f;
-    public float k_PublishMsgFrequency = 0.1f;  //ROS消息发送频率
+    public float k_PublishMsgFrequency = 0.5f;  //ROS消息发送频率
 
     // 是否进入遥操作模式      ---------*******记得做互斥的修改********-------------
     public bool is_TeleOperation = false;
@@ -146,7 +146,7 @@ public class AuboControl : MonoBehaviour
     {
         // update the virtual joints states in time
         m_VirtualJointsState = GetCurrenJoints().joints;
-        if (is_AuboApi)
+        if (is_AuboApi && (!is_TeleOperation))
         {
             SetJointState(m_RealJointsState);
         }
@@ -211,6 +211,12 @@ public class AuboControl : MonoBehaviour
     // Basic control of robot
     public void SetJointState(double[] target_joints)
     {
+        if (target_joints[0] < -0.27 || target_joints[0] > 3.14)
+        {
+            Debug.Log("关节超限！");
+            return;
+        }
+
         // double -> float
         var result = target_joints.Select(r => (float)r * Mathf.Rad2Deg).ToArray();
         for (var joint = 0; joint < m_JointArticulationBodies.Length; joint++)
@@ -229,9 +235,9 @@ public class AuboControl : MonoBehaviour
     {
         while (true) // 遥操作时持续发送消息
         {
-            if (is_TeleOperation)
+            if (is_TeleOperation && is_AuboApi)
             {
-                UnityEngine.Debug.Log("开始协程");
+                Debug.Log("开始协程");
                 AuboJointsMsg pub_joints = new AuboJointsMsg(m_VirtualJointsState);
                 m_Ros.Publish(m_JointPubName, pub_joints);
             }

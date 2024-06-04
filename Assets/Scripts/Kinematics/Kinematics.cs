@@ -350,6 +350,45 @@ public class Kinematics : MonoBehaviour
 
     }
 
+    public void MoveByJoystick(double move_x, double move_y)
+    {
+        double[,] current_matrix = new double[4, 4];
+        double[] current_joints = new double[6];
+        //获取当时真实的机械臂关节角度
+        Array.Copy(i_aubocontrol.m_VirtualJointsState, current_joints, 6);
+        aubo_forward(current_matrix, current_joints);
+
+        current_matrix[0, 3] += move_x;
+        current_matrix[1, 3] += move_y;
+
+        double[] temp_inverse;
+        bool flag = GetInverseResult(current_matrix, current_joints, out temp_inverse);
+        if (flag)
+        {
+            double joints_sum = 0;
+            for (int i = 0; i < current_joints.Length; i++)
+            {
+                joints_sum += Math.Abs(temp_inverse[i] - current_joints[i]);  
+            }
+
+            if (joints_sum < arm_max_change)  //60度左右
+            {
+                i_aubocontrol.SetJointState(temp_inverse);
+            }
+            else
+            {
+                UnityEngine.Debug.Log("机械臂变化角度过大，忽略本次移动！");
+                return;
+            }
+
+        }
+        else
+        {
+            UnityEngine.Debug.Log("No Solution!");
+        }
+
+    }
+
 
     public Matrix4x4 MatrixDoubleTo4x4(double[,] d_matrix)
     {

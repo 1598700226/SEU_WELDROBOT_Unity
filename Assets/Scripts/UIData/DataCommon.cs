@@ -834,6 +834,8 @@ public class DataCommon : MonoBehaviour
         {
             auboMaunalOperatePlan.ClearData();
             btn_aubo_teleOperate.GetComponentInChildren<TMP_Text>().text = "遥操作模式：开";
+            //自动切换到Aubo Api 控制器
+            auboControl.RobotControllerSwitch(0);
 
             Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
             switch (dropDown_aubo_teleOperateMode.value)
@@ -860,6 +862,8 @@ public class DataCommon : MonoBehaviour
         else
         {
             btn_aubo_teleOperate.GetComponentInChildren<TMP_Text>().text = "遥操作模式：关";
+            // 切换为 ROS 控制器
+            auboControl.RobotControllerSwitch(1);
         }
     }
 

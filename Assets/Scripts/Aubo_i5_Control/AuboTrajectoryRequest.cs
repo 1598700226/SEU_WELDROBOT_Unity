@@ -11,12 +11,16 @@ using Unity.Robotics.ROSTCPConnector.ROSGeometry;
 
 using UnityEngine;
 using Emgu.CV.CvEnum;
+using Gravitons.UI.Modal;
 
 public class AuboTrajectoryRequest : MonoBehaviour
 {
     // controller instance
     public AuboControl i_controller;
 
+
+    // 碰撞检测
+    public bool is_robot_collision = false;
 
 
 
@@ -377,6 +381,12 @@ public class AuboTrajectoryRequest : MonoBehaviour
                 foreach (var p in response.trajectories[trajectoryIndex].joint_trajectory.points)
                 {
                     var jointPositions = p.positions;
+                    if ((jointPositions[0] < -0.27) || (jointPositions[0] > 3.14))
+                    {
+                        //Debug.Log("Collision Detected!");
+                        m_Executerequest = new AuboExecuteServiceRequest();
+                        ModalManager.Show("注意！重要！", "检测到碰撞，将不予执行！", new[] { new ModalButton() { Text = "OK" } });
+                    }
                     i_controller.SetJointState(jointPositions);                   
 
                     // Wait for robot to achieve pose for all joint assignments
@@ -422,6 +432,12 @@ public class AuboTrajectoryRequest : MonoBehaviour
                 foreach (var p in response.trajectories[trajectoryIndex].joint_trajectory.points)
                 {
                     var jointPositions = p.positions;
+                    if ((jointPositions[0]<0.27) || (jointPositions[0] > 3.14))
+                    {
+                        //Debug.Log("Collision Detected!");
+                        m_Executerequest = new AuboExecuteServiceRequest();
+                        ModalManager.Show("注意！重要！", "检测到碰撞，将不予执行！", new[] { new ModalButton() { Text = "OK" } });
+                    }
                     i_controller.SetJointState(jointPositions);                   
 
                     // Wait for robot to achieve pose for all joint assignments
