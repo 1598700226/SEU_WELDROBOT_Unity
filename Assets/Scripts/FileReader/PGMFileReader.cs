@@ -13,13 +13,15 @@ using UnityEngine.UIElements;
 
 public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler
 {
-    public string pgmFileDir;   // PGM文件所在文件夹的路径
-    public string pgmFilePath;  // PGM文件的路径
-    public RawImage rawImage;   // 用于显示图像的UI RawImage
+    [Space(5)]
+    [Header("PGM基础参数")]
+    public string pgmFileDir;                           // PGM文件所在文件夹的路径
+    public string pgmFilePath;                          // PGM文件的路径
+    public RawImage rawImage;                           // 用于显示图像的UI RawImage
     public TMP_Text lableTitle;     
     private Texture2D pgmTexture2D;
     private int updateCoroutinePixelLimit = 250000;     // 协程更新像素点数量的限制
-    private bool isUpdatePgmTextureRunning = false;   // 当前是否正在更新PGM地图
+    private bool isUpdatePgmTextureRunning = false;     // 当前是否正在更新PGM地图
     private Texture2D pgmCarPositionTexture2D;
     public bool isUpdatePGMMapOnce = true;
     public bool isReceviceRosMapTopic = false;
@@ -32,11 +34,13 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     int width = 0;
     int height = 0;
     int maxPixelValue = 0;
-    int[,] pixels = null;                // 【行，列】
-    float imageShow_width_scala = 0.0f;  //缩放系数 图像像素位置*scala = 实际图像像素位置
-    float imageShow_height_scala = 0.0f; //缩放系数 图像像素位置*scala = 实际图像像素位置..
+    int[,] pixels = null;                               // 【行，列】
+    float imageShow_width_scala = 0.0f;                 //缩放系数 图像像素位置*scala = 实际图像像素位置
+    float imageShow_height_scala = 0.0f;                //缩放系数 图像像素位置*scala = 实际图像像素位置..
 
     // 鼠标控制
+    [Space(5)]
+    [Header("鼠标点击显示")]
     bool isMouseEnter = false;
     float currentZoom = 1.0f;
     float zoomSpeed = 3.0f;
@@ -45,10 +49,16 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
     public bool isLocalMagnification = true;
 
     // 定位点显示
-    public int PointShowSize = 20; 
-    public Vector2 nowPosition = Vector2.zero;                     // unity图片坐标系下的点
+    [Space(5)]
+    [Header("定位点显示")]
+    public int PointShowSize = 20;
+    public Vector2 nowPosition = Vector2.zero;               // unity图片坐标系下的点
     public Vector2 nowPosition_actual = Vector2.zero;
-    private bool isShowPositionRunning = false;                    // 更新坐标点显示的协程
+    private bool isShowPositionRunning = false;              // 更新坐标点显示的协程
+    public RawImage positionDrawImage;
+    private Texture2D positonDrawTexture2D;
+    private int posTextureWidth = 200;
+    private int posTextureHeight = 200;
 
     // Start is called before the first frame update
     void Start()
@@ -56,6 +66,17 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
         width = rawImage.texture.width;
         height = rawImage.texture.height;
         RosMapTopicsServer = GameObject.Find("RosMapData");
+
+        // 创建透明的绘制图层
+        positonDrawTexture2D = new Texture2D(posTextureWidth, posTextureHeight, TextureFormat.RGBA32, false);
+        Color[] fillColorArray = positonDrawTexture2D.GetPixels();
+        for (int i = 0; i < fillColorArray.Length; ++i)
+        {
+            fillColorArray[i] = new Color(0, 0, 0, 0); // Transparent color
+        }
+        positonDrawTexture2D.SetPixels(fillColorArray);
+        positonDrawTexture2D.Apply();
+        positionDrawImage.texture = positonDrawTexture2D;
     }
 
     // Update is called once per frame
@@ -102,7 +123,7 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
                     rawImage.uvRect = new Rect(x, y, size, size);
                 }
             }
-            else 
+            else
             {
                 // 获取鼠标滚轮的输入
                 float scroll = Input.GetAxis("Mouse ScrollWheel");
@@ -397,12 +418,32 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
 
         // 开始绘制点
         isShowPositionRunning = true;
+        // 原图层转换到绘制图层
+        float width_scala = (float)posTextureWidth / width;
+        float height_scala = (float)posTextureHeight / height;
+        List<Vector2> drawPoint = new();
+        positions.ForEach(item =>
+        {
+            drawPoint.Add(new Vector2(item.x * width_scala, item.y * height_scala));
+        });
         // 创建一个新的Texture2D对象，尺寸和格式与原始纹理相同
-        if (pgmCarPositionTexture2D != null) {
-            Destroy(pgmCarPositionTexture2D);
+        /*        if (pgmCarPositionTexture2D != null) {
+                    Destroy(pgmCarPositionTexture2D);
+                }
+                pgmCarPositionTexture2D = new Texture2D(pgmTexture2D.width, pgmTexture2D.height, pgmTexture2D.format, pgmTexture2D.mipmapCount > 1);
+                pgmCarPositionTexture2D.SetPixels(pgmTexture2D.GetPixels());*/
+        if (positonDrawTexture2D != null)
+        {
+            Destroy(positonDrawTexture2D);
         }
-        pgmCarPositionTexture2D = new Texture2D(pgmTexture2D.width, pgmTexture2D.height, pgmTexture2D.format, pgmTexture2D.mipmapCount > 1);
-        pgmCarPositionTexture2D.SetPixels(pgmTexture2D.GetPixels());
+        positonDrawTexture2D = new Texture2D(posTextureWidth, posTextureHeight, TextureFormat.RGBA32, false);
+        Color[] fillColorArray = positonDrawTexture2D.GetPixels();
+        for (int i = 0; i < fillColorArray.Length; ++i)
+        {
+            fillColorArray[i] = new Color(0, 0, 0, 0); // Transparent color
+        }
+        positonDrawTexture2D.SetPixels(fillColorArray);
+        positonDrawTexture2D.Apply();
 
         if (isShow)
         {
@@ -419,43 +460,46 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             for (int i = 0; i < bluePixels.Length; i++)
                 bluePixels[i] = Color.blue;
 
-            for (int i = 0; i < positions.Count; i++)
+            for (int i = 0; i < drawPoint.Count; i++)
             {
-                int px = (int)positions[i].x - areaSize / 2;
-                int py = (int)positions[i].y - areaSize / 2;
+                int px = (int)drawPoint[i].x - areaSize / 2;
+                int py = (int)drawPoint[i].y - areaSize / 2;
                 px = px < 0 ? 0 : px;
                 py = py < 0 ? 0 : py;
 
                 // 防止出界
-                if ((int)positions[i].x + areaSize / 2 >= pgmTexture2D.width ||
-                    (int)positions[i].y + areaSize / 2 >= pgmTexture2D.height)
+                if ((int)drawPoint[i].x + areaSize / 2 >= positonDrawTexture2D.width ||
+                    (int)drawPoint[i].y + areaSize / 2 >= positonDrawTexture2D.height)
                 {
                     continue;
                 }
 
                 if (i == 0)
                 {
-                    pgmCarPositionTexture2D.SetPixels(px, py,
+                    positonDrawTexture2D.SetPixels(px, py,
                         areaSize, areaSize, redPixels);
                 }
-                else if (i == positions.Count - 1)
+                else if (i == drawPoint.Count - 1)
                 {
-                    pgmCarPositionTexture2D.SetPixels(px, py,
+                    positonDrawTexture2D.SetPixels(px, py,
                         areaSize, areaSize, bluePixels);
                 }
                 else 
                 {
-                    pgmCarPositionTexture2D.SetPixels(px, py,
+                    positonDrawTexture2D.SetPixels(px, py,
                         areaSize, areaSize, greenPixels);
                 }
             }
-
-            pgmCarPositionTexture2D.Apply();
-            rawImage.texture = pgmCarPositionTexture2D;
+            /*            pgmCarPositionTexture2D.Apply();
+                        rawImage.texture = pgmCarPositionTexture2D;*/
+            positonDrawTexture2D.Apply();
+            positionDrawImage.texture = positonDrawTexture2D;
         }
         else {
-            pgmCarPositionTexture2D.Apply();
-            rawImage.texture = pgmCarPositionTexture2D;
+            /*            pgmCarPositionTexture2D.Apply();
+                        rawImage.texture = pgmCarPositionTexture2D;*/
+            positonDrawTexture2D.Apply();
+            positionDrawImage.texture = positonDrawTexture2D;
         }
 
         isShowPositionRunning = false;
@@ -477,6 +521,9 @@ public class PGMFileReader : MonoBehaviour, IPointerEnterHandler, IPointerExitHa
             DebugGUI.Log("【Astar】路径规划失败，可能终点不可达");
             return;
         }
+
+        pathPoints.Insert(0, nowPosition);
+        pathPoints.Add(mouseDownPositon);
         StartCoroutine(UpdatePostionShow(pathPoints, PointShowSize, true));
     }
 }

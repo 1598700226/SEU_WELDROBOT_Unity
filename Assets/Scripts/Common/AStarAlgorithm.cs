@@ -259,7 +259,7 @@ public class AStarAlgorithm : MonoBehaviour
             {
                 for (int y = 0; y < NODE_SIZE; y++)
                 {
-                    if (map[j * NODE_SIZE + y, i * NODE_SIZE + x] == OBSTACLE_GRAY)
+                    if (map[j * NODE_SIZE + y, i * NODE_SIZE + x] >= OBSTACLE_GRAY)
                     {
                         return false;
                     }
