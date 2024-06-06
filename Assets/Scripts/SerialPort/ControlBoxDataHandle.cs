@@ -11,6 +11,7 @@ public class ControlBoxDataHandle : MonoBehaviour
     public TMP_Text receiveTextShow;
     [Header("左摇杆位移距离参数")]
     public float positonDisPerFrame = 0.1f;
+    Vector3 pos_incre = Vector3.zero;
 
     /************接收数据格式**********/
     SerialPortControl serialPortControl;
@@ -218,28 +219,35 @@ public class ControlBoxDataHandle : MonoBehaviour
         #region 左摇杆控制机械臂移动
         // 获取速度
         float armSpeed = float.Parse(dataCommon.input_aubo_speed.text);
-        Vector3 pos_incre = Vector3.zero;
         // 前进z front+ back-
         if (adData[2] < 1200)
         {
-            DebugGUI.LogString($"【控制箱】左摇杆控制<前进> ad_2:{adData[2]}");
+            Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+            kinematics.MoveByJoystick(armSpeed * positonDisPerFrame, 0);
             pos_incre.z += armSpeed * positonDisPerFrame;
+            DebugGUI.LogString($"【控制箱】左摇杆控制<前进> ad_2:{adData[2]} pos_move:{pos_incre}");
         }
         else if (adData[2] > 2300)
         {
-            DebugGUI.LogString($"【控制箱】左摇杆控制<后退> ad_2:{adData[2]}");
+            Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+            kinematics.MoveByJoystick(-armSpeed * positonDisPerFrame, 0);
             pos_incre.z -= armSpeed * positonDisPerFrame;
+            DebugGUI.LogString($"【控制箱】左摇杆控制<后退> ad_2:{adData[2]}  pos_move:{pos_incre}");
         }
         // 水平x left- right+
         if (adData[3] < 1200)
         {
-            DebugGUI.LogString($"【控制箱】左摇杆控制<水平左> ad_3:{adData[3]}");
-            pos_incre.x -= armSpeed * positonDisPerFrame;
+            Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+            kinematics.MoveByJoystick(0, armSpeed * positonDisPerFrame);
+            pos_incre.x += armSpeed * positonDisPerFrame;
+            DebugGUI.LogString($"【控制箱】左摇杆控制<水平左> ad_3:{adData[3]} pos_move:{pos_incre}");
         }
         else if (adData[3] > 2300)
         {
-            DebugGUI.LogString($"【控制箱】左摇杆控制<水平右> ad_3:{adData[3]}");
-            pos_incre.x += armSpeed * positonDisPerFrame;
+            Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+            kinematics.MoveByJoystick(0, -armSpeed * positonDisPerFrame);
+            pos_incre.x -= armSpeed * positonDisPerFrame;
+            DebugGUI.LogString($"【控制箱】左摇杆控制<水平右> ad_3:{adData[3]} pos_move:{pos_incre}");
         }
         #endregion
 

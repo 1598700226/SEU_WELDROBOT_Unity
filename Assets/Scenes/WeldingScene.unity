@@ -9980,6 +9980,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   i_controller: {fileID: 0}
+  is_robot_collision: 0
   m_Target: {fileID: 0}
   m_TargetPlacement: {fileID: 0}
 --- !u!114 &276145153
@@ -10017,6 +10018,8 @@ MonoBehaviour:
       z: 0
       w: 1
   m_VirtualJointsState: []
+  m_LastJointsState: []
+  m_JointsTolerance: 0.2
   k_JointAssignmentWait: 0.1
   k_PoseAssignmentWait: 0.5
   k_PublishMsgFrequency: 0.2
@@ -63589,8 +63592,8 @@ MonoBehaviour:
   isUpdatePGMMapOnce: 0
   isReceviceRosMapTopic: 0
   RosMapTopicsServer: {fileID: 0}
-  AstarNodeSize: 20
-  AstarObstacleGray: 240
+  AstarNodeSize: 10
+  AstarObstacleGray: 250
   mouseDownPositon: {x: 0, y: 0}
   mouseDownPositon_actual: {x: 0, y: 0}
   isLocalMagnification: 0

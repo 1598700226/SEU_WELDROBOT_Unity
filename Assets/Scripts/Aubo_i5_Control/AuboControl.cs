@@ -56,6 +56,9 @@ public class AuboControl : MonoBehaviour
     public PoseMsg m_RealPose;
     public PoseMsg m_Transform;
     public double[] m_VirtualJointsState;
+    public double[] m_LastJointsState;
+
+    public double m_JointsTolerance = 0.1;
 
     // Interval of simulate robot executing
     public float k_JointAssignmentWait = 0.1f;
@@ -109,6 +112,7 @@ public class AuboControl : MonoBehaviour
         m_Transform = new PoseMsg();
         m_RealJointsState = new double[k_NumRobotJoints];
         m_VirtualJointsState = new double[k_NumRobotJoints];
+        m_LastJointsState = new double[k_NumRobotJoints];
 
 
         // Initialize Robot Joints
@@ -237,15 +241,39 @@ public class AuboControl : MonoBehaviour
         {
             if (is_TeleOperation && is_AuboApi)
             {
-                Debug.Log("开始协程");
-                AuboJointsMsg pub_joints = new AuboJointsMsg(m_VirtualJointsState);
-                m_Ros.Publish(m_JointPubName, pub_joints);
+                
+                if (IsJointsStateUpdate(m_LastJointsState, m_VirtualJointsState, m_JointsTolerance))
+                {
+                    AuboJointsMsg pub_joints = new AuboJointsMsg(m_VirtualJointsState);
+                    m_Ros.Publish(m_JointPubName, pub_joints);
+                    Debug.Log("开始协程：发送关节角");
+                    DebugGUI.Log("开始协程：发送关节角");
+                    Array.Copy(m_VirtualJointsState, m_LastJointsState, k_NumRobotJoints);
+                }
+                //Array.Copy(m_VirtualJointsState, m_LastJointsState, k_NumRobotJoints);
             }
-
 
             yield return new WaitForSeconds(interval); // 等待指定的时间间隔
         }
 
+    }
+
+    public bool IsJointsStateUpdate(double[] last_joints, double[] current_joints, double joint_tolerance)
+    {
+        double sum = 0;
+        for (int i = 0; i < k_NumRobotJoints; i++)
+        {
+            sum += Math.Abs(last_joints[i] - current_joints[i]);
+        }
+
+        if (sum < joint_tolerance)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 
     //机械臂急停

@@ -432,7 +432,7 @@ public class AuboTrajectoryRequest : MonoBehaviour
                 foreach (var p in response.trajectories[trajectoryIndex].joint_trajectory.points)
                 {
                     var jointPositions = p.positions;
-                    if ((jointPositions[0]<0.27) || (jointPositions[0] > 3.14))
+                    if ((jointPositions[0] < -0.27) || (jointPositions[0] > 3.14))
                     {
                         //Debug.Log("Collision Detected!");
                         m_Executerequest = new AuboExecuteServiceRequest();
