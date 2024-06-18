@@ -10,7 +10,7 @@ public class ControlBoxDataHandle : MonoBehaviour
 {
     public TMP_Text receiveTextShow;
     [Header("左摇杆位移距离参数")]
-    public float positonDisPerFrame = 0.1f;
+    public float positonDisPerFrame = 0.03f; //单位m
     Vector3 pos_incre = Vector3.zero;
 
     /************接收数据格式**********/
@@ -196,7 +196,17 @@ public class ControlBoxDataHandle : MonoBehaviour
         if (adData[4] < 1200)
         {
             DebugGUI.LogString($"【控制箱】右摇杆控制<前进> ad_4:{adData[4]}");
-            unityPublish_MoveCommand.SendMoveCommandtoTopic(1, 0, 0, 0);
+
+            // 判断前方是否有障碍
+            UnitySubscription_AvoidanceCamrea unitySubscription_AvoidanceCamrea = GameObject.Find("RosAvoidanceColorDepthData").GetComponent<UnitySubscription_AvoidanceCamrea>();
+            if (!unitySubscription_AvoidanceCamrea.hasObstacles)
+            {
+                unityPublish_MoveCommand.SendMoveCommandtoTopic(1, 0, 0, 0);
+            }
+            else
+            {
+                DebugGUI.Log($"【控制箱】前方有障碍，无法前进");
+            }
         }
         else if (adData[4] > 2300)
         {
@@ -218,7 +228,7 @@ public class ControlBoxDataHandle : MonoBehaviour
 
         #region 左摇杆控制机械臂移动
         // 获取速度
-        float armSpeed = float.Parse(dataCommon.input_aubo_speed.text);
+        float armSpeed = dataCommon.Slider_touch_speed.value;
         // 前进z front+ back-
         if (adData[2] < 1200)
         {

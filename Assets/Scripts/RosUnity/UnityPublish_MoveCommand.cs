@@ -82,17 +82,26 @@ public class UnityPublish_MoveCommand : MonoBehaviour
     void listenCarControl()
     {
         // 前进
-        if (buttonKeepDownCheck_fl.isButtonPressed)
+        // 判断前方是否有障碍
+        UnitySubscription_AvoidanceCamrea unitySubscription_AvoidanceCamrea = GameObject.Find("RosAvoidanceColorDepthData").GetComponent<UnitySubscription_AvoidanceCamrea>();
+        if (!unitySubscription_AvoidanceCamrea.hasObstacles)
         {
-            SendMoveCommandtoTopic(1, 0, 0, 1);
+            if (buttonKeepDownCheck_fl.isButtonPressed)
+            {
+                SendMoveCommandtoTopic(1, 0, 0, 1);
+            }
+            if (buttonKeepDownCheck_f.isButtonPressed)
+            {
+                SendMoveCommandtoTopic(1, 0, 0, 0);
+            }
+            if (buttonKeepDownCheck_fr.isButtonPressed)
+            {
+                SendMoveCommandtoTopic(1, 0, 0, -1);
+            }
         }
-        if (buttonKeepDownCheck_f.isButtonPressed)
+        else
         {
-            SendMoveCommandtoTopic(1, 0, 0, 0);
-        }
-        if (buttonKeepDownCheck_fr.isButtonPressed)
-        {
-            SendMoveCommandtoTopic(1, 0, 0, -1);
+            DebugGUI.Log($"【UI listenCarControl】前方有障碍，无法前进");
         }
         // 后退
         if (buttonKeepDownCheck_bl.isButtonPressed)

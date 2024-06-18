@@ -28,6 +28,7 @@ public class UnitySubscription_AvoidanceCamrea : MonoBehaviour
     /*############## ROS话题与服务 ##############*/
     public string color_image_topic = "/camera2/color/image_raw/compressed";
     public string depth_image_topic = "/camera2/aligned_depth_to_color/image_raw";
+    public string realsense_obstacle_check_topic = "get_obstacle_check_result"; // todo 确认topic名称
 
     /*********************** 避障相关 **********************/
     public bool hasObstacles = false;
@@ -38,8 +39,8 @@ public class UnitySubscription_AvoidanceCamrea : MonoBehaviour
     void Start()
     {
         RawImageTexture = new Texture2D(Image_Width, Image_Height);
-        // 开启Realsense障碍物检测
-        StartCoroutine(CheckForObstacles());
+        // 开启Realsense障碍物检测， 0617放到从端做
+        //StartCoroutine(CheckForObstacles());
     }
 
     // Update is called once per frame
@@ -59,7 +60,7 @@ public class UnitySubscription_AvoidanceCamrea : MonoBehaviour
         }
     }
 
-    public void SubscribeTopics(bool color_topic = true, bool depth_topic = true)
+    public void SubscribeTopics(bool color_topic = true, bool depth_topic = false)
     {
         if (color_topic)
         {
@@ -74,12 +75,20 @@ public class UnitySubscription_AvoidanceCamrea : MonoBehaviour
                 ROSConnection.GetOrCreateInstance().
                     Subscribe<RosMessageTypes.Sensor.ImageMsg>(depth_image_topic, DepthImageCall);
         }
+
+        if (!ROSConnection.GetOrCreateInstance().HasSubscriber(realsense_obstacle_check_topic))
+            ROSConnection.GetOrCreateInstance().
+                Subscribe<RosMessageTypes.Std.BoolMsg>(realsense_obstacle_check_topic, ObstacleCheckCall);
+        hasObstacles = false;
     }
 
     public void UnSubscribeTopics()
     {
         ROSConnection.GetOrCreateInstance().Unsubscribe(color_image_topic);
         ROSConnection.GetOrCreateInstance().Unsubscribe(depth_image_topic);
+
+        ROSConnection.GetOrCreateInstance().Unsubscribe(realsense_obstacle_check_topic);
+        hasObstacles = false;   // 关闭订阅时将障碍物检测变量置为false
     }
 
     /// <summary>
@@ -97,7 +106,7 @@ public class UnitySubscription_AvoidanceCamrea : MonoBehaviour
     {
         if (rawImage == null)
         {
-            Debug.Log("【UnitySubscription_PointCloud error】rawImage控件为空");
+            Debug.Log("【UnitySubscription_AvoidanceCamrea error】rawImage控件为空");
             return;
         }
 
@@ -200,7 +209,7 @@ public class UnitySubscription_AvoidanceCamrea : MonoBehaviour
     }
 
     /************************************* 障碍物检测 ****************************************/
-    IEnumerator CheckForObstacles() 
+    IEnumerator CheckForObstacles()
     {
         while (true)
         {
@@ -238,5 +247,21 @@ public class UnitySubscription_AvoidanceCamrea : MonoBehaviour
 
             yield return new WaitForSeconds(0.5f);
         }
+    }
+
+    void ObstacleCheckCall(RosMessageTypes.Std.BoolMsg ObstacleCheckMsg)
+    {
+        if (!hasObstacles && ObstacleCheckMsg.data)
+        {
+            DebugGUI.Log("【UnitySubscription_AvoidanceCamrea】 ObstacleCheck 相机检测到障碍");
+            Debug.Log("【UnitySubscription_AvoidanceCamrea】 ObstacleCheck 相机检测到障碍");
+        }
+        if (hasObstacles && !ObstacleCheckMsg.data)
+        {
+            DebugGUI.Log("【UnitySubscription_AvoidanceCamrea】 ObstacleCheck 障碍消失");
+            Debug.Log("【UnitySubscription_AvoidanceCamrea】 ObstacleCheck 障碍消失");
+        }
+
+        hasObstacles = ObstacleCheckMsg.data;
     }
 }

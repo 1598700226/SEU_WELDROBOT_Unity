@@ -378,6 +378,7 @@ public class Kinematics : MonoBehaviour
             else
             {
                 UnityEngine.Debug.Log("机械臂变化角度过大，忽略本次移动！");
+                DebugGUI.Log("机械臂变化角度过大，忽略本次移动！");
                 return;
             }
 

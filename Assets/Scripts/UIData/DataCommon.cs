@@ -445,7 +445,7 @@ public class DataCommon : MonoBehaviour
             }
             else if (dropdown_CameraShow.value > 2)
             {
-                unitySubscription_AvoidanceCamrea.SubscribeTopics(true, true); // 订阅导航彩色图，订阅深度图
+                unitySubscription_AvoidanceCamrea.SubscribeTopics(true, false); // 订阅导航彩色图，不订阅深度图
                 unitySubscription_PointCloud.UnSubscribeTopics(); // 关闭点云的订阅
             }
         }
