@@ -436,7 +436,7 @@ public class DataCommon : MonoBehaviour
         unitySubscription_AvoidanceCamrea.showType = dropdown_CameraShow.value;
         if (toggle_rosCameraSubscription.isOn)
         {
-            if (dropdown_CameraShow.value <= 2)
+/*            if (dropdown_CameraShow.value <= 2)
             {
                 unitySubscription_PointCloud.realRefreshPotinCloud = isRealRefeshPointCloud;
                 unitySubscription_PointCloud.SubscribeTopics(true, false); // 订阅彩色图，不订阅深度图
@@ -447,7 +447,11 @@ public class DataCommon : MonoBehaviour
             {
                 unitySubscription_AvoidanceCamrea.SubscribeTopics(true, false); // 订阅导航彩色图，不订阅深度图
                 unitySubscription_PointCloud.UnSubscribeTopics(); // 关闭点云的订阅
-            }
+            }*/
+
+            unitySubscription_PointCloud.SubscribeTopics(true, false); // 订阅彩色图，不订阅深度图
+            unitySubscription_PointCloud.DepthImageRegisterServiceCall(); // 订阅深度图的服务
+            unitySubscription_AvoidanceCamrea.SubscribeTopics(true, false); // 订阅导航彩色图，不订阅深度图
         }
         else
         {
