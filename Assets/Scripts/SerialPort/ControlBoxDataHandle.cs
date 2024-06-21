@@ -154,6 +154,20 @@ public class ControlBoxDataHandle : MonoBehaviour
         DataCommon dataCommon = GameObject.Find("DataManager").GetComponent<DataCommon>();
         UnityPublish_MoveCommand unityPublish_MoveCommand = GameObject.Find("RosCarMove").GetComponent<UnityPublish_MoveCommand>();
         // 按钮
+        #region 机械臂电源摇杆控制
+        if (buttonData[1] != oldButtonData[1])
+        {
+            Kinematics kinematics = GameObject.Find("HapticActor_DefaultDevice").GetComponent<Kinematics>();
+            if (buttonData[1] == '1')
+            {
+                kinematics.StartJoystickMode(false);
+            }
+            else
+            {
+                kinematics.StartJoystickMode(true);
+            }
+        }
+        #endregion
         #region 机械臂虚拟归位
         if (buttonData[6] != oldButtonData[6])
         {

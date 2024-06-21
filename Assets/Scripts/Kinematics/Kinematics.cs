@@ -122,6 +122,10 @@ public class Kinematics : MonoBehaviour
     private Matrix4x4 Transform_Ros_Touch = new Matrix4x4();
 
 
+    // joystick
+    public bool is_joystick_mode = false;
+    private double[,] joystick_mode_matrix = new double[4, 4];
+
 
 
 
@@ -140,6 +144,8 @@ public class Kinematics : MonoBehaviour
         Array.Copy(slaver_initial_joints, slaver_current_joints, slaver_initial_joints.Length);
 
         aubo_forward(slaver_current_matrix, slaver_current_joints);
+
+        aubo_forward(joystick_mode_matrix, slaver_current_joints);
 
 
         slaver_current_oritation = DoubleMatrixToRotation(slaver_current_matrix);
@@ -350,7 +356,64 @@ public class Kinematics : MonoBehaviour
 
     }
 
+    public void StartJoystickMode(bool joy_mode)
+    {
+        is_joystick_mode = joy_mode;
+
+        if (is_joystick_mode)
+        {
+            aubo_forward(joystick_mode_matrix, i_aubocontrol.m_VirtualJointsState);
+        }        
+
+    }
+
     public void MoveByJoystick(double move_x, double move_y)
+    {
+        if (is_joystick_mode)
+        {
+            double[] current_joints = new double[6];
+            //获取当时真实的机械臂关节角度
+            Array.Copy(i_aubocontrol.m_VirtualJointsState, current_joints, 6);
+
+
+            joystick_mode_matrix[0, 3] += move_x;
+            joystick_mode_matrix[1, 3] += move_y;
+
+            double[] temp_inverse;
+            bool flag = GetInverseResult(joystick_mode_matrix, current_joints, out temp_inverse);
+            if (flag)
+            {
+                double joints_sum = 0;
+                for (int i = 0; i < current_joints.Length; i++)
+                {
+                    joints_sum += Math.Abs(temp_inverse[i] - current_joints[i]);
+                }
+
+                if (joints_sum < arm_max_change)  //60度左右
+                {
+                    i_aubocontrol.SetJointState(temp_inverse);
+                }
+                else
+                {
+                    UnityEngine.Debug.Log("机械臂变化角度过大，忽略本次移动！");
+                    DebugGUI.Log("机械臂变化角度过大，忽略本次移动！");
+                    return;
+                }
+
+            }
+            else
+            {
+                UnityEngine.Debug.Log("No Solution!");
+            }
+        }
+        else
+        {
+            DebugGUI.Log("请打开摇杆模式！");
+        }
+
+    }
+
+    public void MoveByJoystickOrigin(double move_x, double move_y)
     {
         double[,] current_matrix = new double[4, 4];
         double[] current_joints = new double[6];

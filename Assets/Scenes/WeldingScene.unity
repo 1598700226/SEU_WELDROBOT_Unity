@@ -271,7 +271,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6290023700921099033, guid: 757ca131f07e3478983435cf80dc4eee, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6290023700921099038, guid: 757ca131f07e3478983435cf80dc4eee, type: 3}
       propertyPath: m_Pivot.x
@@ -45329,7 +45329,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 180}
   m_AnchorMin: {x: 0.7599501, y: 0.96099985}
   m_AnchorMax: {x: 0.83584744, y: 0.98910224}
-  m_AnchoredPosition: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -1047, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.49999985, y: 0.5}
 --- !u!114 &1169411692
@@ -76872,6 +76872,7 @@ MonoBehaviour:
   - 0
   - 0
   - 0
+  is_joystick_mode: 0
 --- !u!1 &1985885161
 GameObject:
   m_ObjectHideFlags: 0
