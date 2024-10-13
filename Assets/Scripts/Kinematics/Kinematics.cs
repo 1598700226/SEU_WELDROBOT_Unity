@@ -397,13 +397,17 @@ public class Kinematics : MonoBehaviour
                 {
                     UnityEngine.Debug.Log("机械臂变化角度过大，忽略本次移动！");
                     DebugGUI.Log("机械臂变化角度过大，忽略本次移动！");
+                    joystick_mode_matrix[0, 3] -= move_x;
+                    joystick_mode_matrix[1, 3] -= move_y;
                     return;
                 }
 
             }
             else
             {
-                UnityEngine.Debug.Log("No Solution!");
+                DebugGUI.Log("No Solution!");
+                joystick_mode_matrix[0, 3] -= move_x;
+                joystick_mode_matrix[1, 3] -= move_y;
             }
         }
         else

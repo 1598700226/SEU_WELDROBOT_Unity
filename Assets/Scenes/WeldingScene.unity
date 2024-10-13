@@ -10019,10 +10019,10 @@ MonoBehaviour:
       w: 1
   m_VirtualJointsState: []
   m_LastJointsState: []
-  m_JointsTolerance: 0.2
+  m_JointsTolerance: 0.018
   k_JointAssignmentWait: 0.1
   k_PoseAssignmentWait: 0.5
-  k_PublishMsgFrequency: 0.2
+  k_PublishMsgFrequency: 0.0333
   is_TeleOperation: 0
   is_AuboApi: 0
   m_JointVelocity: 0.1

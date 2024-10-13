@@ -31,7 +31,7 @@ public class UnitySubscription_Map : MonoBehaviour
     {
         ROSConnection.GetOrCreateInstance().RegisterPublisher<RosMessageTypes.Actionlib.GoalIDMsg>(cancelTopicName);
         ROSConnection.GetOrCreateInstance().RegisterPublisher<RosMessageTypes.Nav.OccupancyGridMsg>(navi_topic);
-
+        
         if (!ROSConnection.GetOrCreateInstance().HasSubscriber(navi_nowpostion_topic))
             ROSConnection.GetOrCreateInstance().
                 Subscribe<RosMessageTypes.Geometry.PoseWithCovarianceStampedMsg>(navi_nowpostion_topic, NowPositionCall);
